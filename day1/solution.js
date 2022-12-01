@@ -15,5 +15,5 @@ for (i = 0; i <= inputs.length; i++) {
 allElves.sort((a, b) => b - a )
 console.log("Answer for part 1: " + allElves[0])
 
-const topCalories = allElves.sort((a, b) => b - a ).slice(0, 3).reduce((a, b) => a + b, 0)
+const topCalories = allElves.slice(0, 3).reduce((a, b) => a + b, 0)
 console.log("Answer for part 2: " + topCalories)
