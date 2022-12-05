@@ -51,8 +51,6 @@ After the rearrangement procedure completes, what crate ends up on top of each s
 
 Your puzzle answer was PSNRGBTFT.
 
-The first half of this puzzle is complete! It provides one gold star: *
-
 --- Part Two ---
 As you watch the crane operator expertly rearrange the crates, you notice the process isn't following your prediction.
 
@@ -96,3 +94,7 @@ Finally, a single crate is still moved from stack 1 to stack 2, but now it's cra
 In this example, the CrateMover 9001 has put the crates in a totally different order: MCD.
 
 Before the rearrangement process finishes, update your simulation so that the Elves know where they should stand to be ready to unload the final supplies. After the rearrangement procedure completes, what crate ends up on top of each stack?
+
+Your puzzle answer was BNTZFPMMW.
+
+Both parts of this puzzle are complete! They provide two gold stars: **
