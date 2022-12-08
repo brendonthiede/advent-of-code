@@ -41,6 +41,7 @@ const visibleTrees = forest.reduce((a, b) => a + b.filter(tree => tree.visible).
 console.log(`Answer for part 1: ${visibleTrees}`)
 
 let bestScore = 0
+// ignore the edges, as they will always score 0
 for (let x = 1; x < forest[0].length - 1; x++) {
     for (let y = 1; y < forest.length - 1; y++) {
         const treeHeight = forest[y][x].height
