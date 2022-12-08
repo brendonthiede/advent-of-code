@@ -34,7 +34,7 @@ function markVisibleLeftToRight(forest) {
 }
 
 markVisibleLeftToRight(forest)
-// rotate the forest 90 degrees clockwise
+// transpose columns to rows to use the same logic of looking left and right
 forest = forest[0].map((_, colIndex) => forest.map(row => row[colIndex]));
 markVisibleLeftToRight(forest)
 const visibleTrees = forest.reduce((a, b) => a + b.filter(tree => tree.visible).length, 0)
@@ -83,10 +83,4 @@ for (let x = 1; x < forest[0].length - 1; x++) {
     }
 }
 
-
-forest = forest[0].map((_, colIndex) => forest.map(row => row[colIndex]));
-forest = forest[0].map((_, colIndex) => forest.map(row => row[colIndex]));
-forest = forest[0].map((_, colIndex) => forest.map(row => row[colIndex]));
-
-// printForest(forest)
 console.log(`Answer for part 2: ${bestScore}`)
