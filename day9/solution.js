@@ -29,12 +29,9 @@ function getVisited(tailLength) {
     const positions = Array(tailLength + 1).fill(0).map(() => { return { x: 0, y: 0 } })
     
     movements.forEach(movement => {
-        const { direction, distance } = movement
-        const dx = direction === 'R' ? 1 : direction === 'L' ? -1 : 0
-        const dy = direction === 'U' ? 1 : direction === 'D' ? -1 : 0
-        for (let i = 0; i < distance; i++) {
-            positions[0].x += dx
-            positions[0].y += dy
+        for (let i = 0; i < movement.distance; i++) {
+            positions[0].x += movement.direction === 'R' ? 1 : movement.direction === 'L' ? -1 : 0
+            positions[0].y += movement.direction === 'U' ? 1 : movement.direction === 'D' ? -1 : 0
 
             for (let index = 1; index < positions.length; index++) {
                 moveTail(positions[index - 1], positions[index])
