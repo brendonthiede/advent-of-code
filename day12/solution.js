@@ -20,7 +20,7 @@ function possibleMoves(position, grid, visited = []) {
             // ignore already visited
             if (visited.includes(`${position.x + dx},${position.y + dy}`)) continue
             // ignore if the elevation change is too great
-            if (grid[position.y + dy][position.x + dx] - grid[position.y][position.x] > 1) continue
+            if (grid[position.y][position.x] - grid[position.y + dy][position.x + dx] > 1) continue
 
             options.push({ x: position.x + dx, y: position.y + dy })
         }
@@ -28,18 +28,18 @@ function possibleMoves(position, grid, visited = []) {
     return options
 }
 
-function shortestPath(start, finish, grid) {
+function shortestPath(startValue, finish, grid) {
     let finalPath = []
 
-    const possibilities = [[start]]
-    const visited = [`${start.x},${start.y}`]
+    const possibilities = [[finish]]
+    const visited = [`${finish.x},${finish.y}`]
 
     while (possibilities.length > 0 && finalPath.length == 0) {
         let path = possibilities.shift()
         let position = path[path.length - 1]
 
         possibleMoves(position, grid, visited).forEach((move) => {
-            if (move.x == finish.x && move.y == finish.y) finalPath = path.concat([finish])
+            if (grid[move.y][move.x] === startValue) finalPath = path.concat([finish])
             visited.push(`${move.x},${move.y}`)
             possibilities.push(path.concat([move]))
         })
@@ -58,18 +58,8 @@ const finish = locationOf('E')
 grid[start.y][start.x] = 'a'.charCodeAt(0) - 1
 grid[finish.y][finish.x] = 'z'.charCodeAt(0) + 1
 
-const shortestPathFromS = shortestPath(start, finish, grid)
-
+const shortestPathFromS = shortestPath('a'.charCodeAt(0) - 1, finish, grid)
 console.log(`Answer for part 1: ${shortestPathFromS}`)
 
-const part2Paths = [shortestPathFromS]
-for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[y].length; x++) {
-        if (grid[y][x] === 'a'.charCodeAt(0)) {
-            const path = shortestPath({ x, y }, finish, grid)
-            if (path > 0) part2Paths.push(path)
-        }
-    }
-}
-
-console.log(`Answer for part 2: ${Math.min(...part2Paths)}`)
+const shortestPathFromA = shortestPath('a'.charCodeAt(0), finish, grid)
+console.log(`Answer for part 2: ${shortestPathFromA}`)
