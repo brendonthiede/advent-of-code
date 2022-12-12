@@ -9,23 +9,20 @@ function locationOf(character) {
 }
 
 function possibleMoves(position, grid, visited = []) {
-    const options = []
-    for (let dy = -1; dy < 2; dy++) {
-        for (let dx = -1; dx < 2; dx++) {
-            // ignore diagonals
-            if (Math.abs(dy) === Math.abs(dx)) continue
-            // ignore out of bounds
-            if (position.x + dx < 0 || position.x + dx >= grid[0].length ||
-                position.y + dy < 0 || position.y + dy >= grid.length) continue
-            // ignore already visited
-            if (visited.includes(`${position.x + dx},${position.y + dy}`)) continue
-            // ignore if the elevation change is too great
-            if (grid[position.y][position.x] - grid[position.y + dy][position.x + dx] > 1) continue
+    // up down left right
+    return [{ x: position.x, y: position.y - 1 }, { x: position.x, y: position.y + 1 }, { x: position.x - 1, y: position.y }, { x: position.x + 1, y: position.y }]
+        .filter((newPosition) => {
+            return (
+                // ignore out of bounds
+                newPosition.x >= 0 && newPosition.x < grid[0].length &&
+                newPosition.y >= 0 && newPosition.y < grid.length &&
+                // ignore too steep
+                grid[position.y][position.x] - grid[newPosition.y][newPosition.x] <= 1 &&
+                // ignore already visited
+                !visited.includes(`${newPosition.x},${newPosition.y}`)
+            )
+        })
 
-            options.push({ x: position.x + dx, y: position.y + dy })
-        }
-    }
-    return options
 }
 
 function shortestPath(startValue, finish, grid) {
