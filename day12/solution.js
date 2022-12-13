@@ -16,13 +16,12 @@ function possibleMoves(position, grid, visited = []) {
                 // ignore out of bounds
                 newPosition.x >= 0 && newPosition.x < grid[0].length &&
                 newPosition.y >= 0 && newPosition.y < grid.length &&
-                // ignore too steep
+                // ignore too steep (going downhill from this perspective, doing the maze backwards)
                 grid[position.y][position.x] - grid[newPosition.y][newPosition.x] <= 1 &&
                 // ignore already visited
                 !visited.includes(`${newPosition.x},${newPosition.y}`)
             )
         })
-
 }
 
 function shortestPath(startValue, finish, grid) {
@@ -55,8 +54,10 @@ const finish = locationOf('E')
 grid[start.y][start.x] = 'a'.charCodeAt(0) - 1
 grid[finish.y][finish.x] = 'z'.charCodeAt(0) + 1
 
+// work backwards from the end to the start
 const shortestPathFromS = shortestPath('a'.charCodeAt(0) - 1, finish, grid)
 console.log(`Answer for part 1: ${shortestPathFromS}`)
 
+// work backwards from the end to the first 'a'
 const shortestPathFromA = shortestPath('a'.charCodeAt(0), finish, grid)
 console.log(`Answer for part 2: ${shortestPathFromA}`)
