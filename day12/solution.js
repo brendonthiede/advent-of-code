@@ -1,5 +1,4 @@
 fs = require('fs')
-const input = fs.readFileSync(`${__dirname}/input.txt`, 'utf8')
 
 function locationOf(character) {
     return grid.reduce((acc, row, y) => {
@@ -30,15 +29,16 @@ function shortestPath(startValue, finish, grid) {
     const possibilities = [[finish]]
     const visited = [`${finish.x},${finish.y}`]
 
-    while (possibilities.length > 0 && finalPath.length == 0) {
+    while (possibilities.length > 0 && finalPath.length === 0) {
         let path = possibilities.shift()
         let position = path[path.length - 1]
 
         possibleMoves(position, grid, visited).forEach((move) => {
-            if (grid[move.y][move.x] === startValue) finalPath = path.concat([finish])
+            if (grid[move.y][move.x] === startValue) finalPath = path.concat([move])
             visited.push(`${move.x},${move.y}`)
             possibilities.push(path.concat([move]))
         })
+        
     }
 
     return finalPath.length - 1
