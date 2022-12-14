@@ -114,8 +114,6 @@ Using your scan, simulate the falling sand. How many units of sand come to rest 
 
 Your puzzle answer was 1133.
 
-The first half of this puzzle is complete! It provides one gold star: *
-
 --- Part Two ---
 You realize you misread the scan. There isn't an endless void at the bottom of the scan - there's floor, and you're standing on it!
 
@@ -150,3 +148,7 @@ To find somewhere safe to stand, you'll need to simulate falling sand until a un
 ..ooooo.......ooooooooo..
 #########################
 Using your scan, simulate the falling sand until the source of the sand becomes blocked. How many units of sand come to rest?
+
+Your puzzle answer was 27566.
+
+Both parts of this puzzle are complete! They provide two gold stars: **
