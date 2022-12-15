@@ -1,13 +1,8 @@
 fs = require('fs')
 
-const inputs = fs.readFileSync(`${__dirname}/sample.txt`, 'utf8')
-    .split(/\r?\n/)
-    .map((line) => line.split(' -> ').map((val) => val.split(',').map(Number)))
-
-const extremes = inputs.reduce((extremes, line) => {
-    line.forEach((val) => {
-        const x = val[0]
-        const y = val[1]
+function updateExtremes(blockages) {
+    blockages.forEach((val) => {
+        const [x, y] = val.split(',').map(Number)
         if (x < extremes.leftMost) {
             extremes.leftMost = x
         }
@@ -21,55 +16,31 @@ const extremes = inputs.reduce((extremes, line) => {
             extremes.bottom = y
         }
     })
-    return extremes
-}, { leftMost: Infinity, rightMost: 0, top: Infinity, bottom: 0 })
+}
 
-
-const walls = new Set()
-const sand = new Set()
-
-inputs.forEach((line) => {
-    line.forEach((val, index) => {
-        if (index > 0) {
-            const prev = line[index - 1]
-            for (let x = prev[0]; true; x += x < val[0] ? 1 : -1) {
-                for (let y = prev[1]; true; y += y < val[1] ? 1 : -1) {
-                    walls.add([x, y].toString())
-                    if (y === val[1]) break
+function configureWalls() {
+    inputs.forEach((line) => {
+        line.forEach((val, index) => {
+            if (index > 0) {
+                const prev = line[index - 1]
+                for (let x = prev[0]; true; x += x < val[0] ? 1 : -1) {
+                    for (let y = prev[1]; true; y += y < val[1] ? 1 : -1) {
+                        walls.add([x, y].toString())
+                        if (y === val[1]) break
+                    }
+                    if (x === val[0]) break
                 }
-                if (x === val[0]) break
             }
-        }
+        })
     })
-})
+}
 
 function printCave() {
-    const newExtremes = {
-        leftMost: extremes.leftMost,
-        rightMost: extremes.rightMost,
-        top: extremes.top,
-        bottom: extremes.bottom
-    }
+    updateExtremes(sand)
 
-    sand.forEach((val) => {
-        const [x, y] = val.split(',').map(Number)
-        if (x < newExtremes.leftMost) {
-            newExtremes.leftMost = x
-        }
-        if (x > newExtremes.rightMost) {
-            newExtremes.rightMost = x
-        }
-        if (y < newExtremes.top) {
-            newExtremes.top = y
-        }
-        if (y > newExtremes.bottom) {
-            newExtremes.bottom = y
-        }
-    })
-
-    for (let y = newExtremes.top; y <= newExtremes.bottom; y++) {
+    for (let y = extremes.top; y <= extremes.bottom; y++) {
         let row = ''
-        for (let x = newExtremes.leftMost; x <= newExtremes.rightMost; x++) {
+        for (let x = extremes.leftMost; x <= extremes.rightMost; x++) {
             if (walls.has([x, y].toString())) {
                 row += '#'
             } else if (sand.has([x, y].toString())) {
@@ -117,5 +88,15 @@ function grainsPossible(hasFloor) {
     }
 }
 
+const inputs = fs.readFileSync(`${__dirname}/input.txt`, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => line.split(' -> ').map((val) => val.split(',').map(Number)))
+
+const extremes = { leftMost: Infinity, rightMost: 0, top: Infinity, bottom: 0 }
+const walls = new Set()
+const sand = new Set()
+
+configureWalls()
+updateExtremes(walls)
 console.log(`Answer for part 1: ${grainsPossible(false)}`)
 console.log(`Answer for part 2: ${grainsPossible(true)}`)
