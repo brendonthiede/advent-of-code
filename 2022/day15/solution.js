@@ -2,8 +2,6 @@ fs = require('fs')
 
 function getInputs(type) {
     const pairs = fs.readFileSync(`${__dirname}/${type}.txt`, 'utf8').split(/\r?\n/).map((line) => line.replace(/:/g, ',').replace(/[a-z= ]*/ig, '').split(',').map(Number))
-    const sensors = pairs.reduce((sensors, [sx, sy, bx, by]) => sensors.add(`${sx},${sy}`), new Set())
-    const beacons = pairs.reduce((beacons, [sx, sy, bx, by]) => beacons.add(`${bx},${by}`), new Set())
     const coverageRanges = pairs.reduce((ranges, [sx, sy, bx, by]) => {
         const manhattanDistance = Math.abs(sx - bx) + Math.abs(sy - by)
         for (let y = sy - manhattanDistance; y <= sy + manhattanDistance; y++) {
@@ -24,7 +22,7 @@ function getInputs(type) {
         }
         return ranges
     }, [])
-    return { pairs, sensors, beacons, coverageRanges }
+    return { pairs, coverageRanges }
 }
 
 function countHoles(inputs, row) {
