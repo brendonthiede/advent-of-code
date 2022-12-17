@@ -24,25 +24,21 @@ function findValve(name) {
 }
 
 function bestFlowChoice(position, remainingTime, valvesLeftToOpen, totalFlowRate, visitedSinceLastValve = '') {
-    if (remainingTime <= 0 || valvesLeftToOpen.length < 4) {
+    if (remainingTime === 0 || valvesLeftToOpen.length === 0) {
         return { totalFlowRate: totalFlowRate }
     }
     const choices = []
+
+    // when you do open this one
+    if (valvesLeftToOpen.indexOf(position.name) >= 0) {
+        choices.push(bestFlowChoice(position, remainingTime - 1, valvesLeftToOpen.replace(`|${position.name}|`, ''), totalFlowRate + position.flowRate * (remainingTime - 1), `|${position.name}|`))
+    }
+
     // when you do not open this one
     for (const tunnel of position.tunnels) {
         // avoid turning right back around if you didn't open this one (wasteful travel)
         if (visitedSinceLastValve.indexOf(`|${tunnel}|`) === -1) {
             choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, valvesLeftToOpen, totalFlowRate, visitedSinceLastValve + `|${position.name}|`))
-        }
-    }
-    // when you do open this one
-    if (valvesLeftToOpen.indexOf(position.name) >= 0 && remainingTime > 0) {
-        remainingTime--
-        if (remainingTime > 0) {
-            valvesLeftToOpen = valvesLeftToOpen.replace(`|${position.name}|`, '')
-            for (const tunnel of position.tunnels) {
-                choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, valvesLeftToOpen, totalFlowRate + position.flowRate * remainingTime, `|${position.name}|`))
-            }
         }
     }
 
