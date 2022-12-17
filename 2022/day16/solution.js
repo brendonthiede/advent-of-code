@@ -1,10 +1,10 @@
 const path = require('path');
 
 fs = require('fs');
-const valvesLeftToOpen = new Set()
+let valvesLeftToOpen = ''
 
 function getInputs(type) {
-    return fs.readFileSync(`${__dirname}/${type}.txt`, 'utf8')
+    const inputs = fs.readFileSync(`${__dirname}/${type}.txt`, 'utf8')
         .split(/\r?\n/)
         .map(row => {
             const matches = row.match(/Valve (\w+) has flow rate=(\d+); tunnel[s]? lead[s]? to valve[s]? (.*)/)
@@ -13,19 +13,18 @@ function getInputs(type) {
                 flowRate: parseInt(matches[2]),
                 tunnels: matches[3].split(', ')
             }
-            if (details.flowRate > 0) valvesLeftToOpen.add(details.name)
+            if (details.flowRate > 0) valvesLeftToOpen += `|${details.name}|`
             return details
         })
+    return new Map(inputs.map(v => [v.name, v]))
 }
 
 function findValve(name) {
-    return inputs.find(v => v.name === name)
+    return inputs.get(name)
 }
 
-const paths = []
-
 function bestFlowChoice(position, remainingTime, valvesLeftToOpen, totalFlowRate, visitedSinceLastValve = '') {
-    if (remainingTime <= 0 || valvesLeftToOpen.size === 0) {
+    if (remainingTime <= 0 || valvesLeftToOpen.length < 4) {
         return { totalFlowRate: totalFlowRate }
     }
     const choices = []
@@ -33,17 +32,16 @@ function bestFlowChoice(position, remainingTime, valvesLeftToOpen, totalFlowRate
     for (const tunnel of position.tunnels) {
         // avoid turning right back around if you didn't open this one (wasteful travel)
         if (visitedSinceLastValve.indexOf(`|${tunnel}|`) === -1) {
-            choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, new Set(valvesLeftToOpen.values()), totalFlowRate, visitedSinceLastValve + `|${position.name}|`))
+            choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, valvesLeftToOpen, totalFlowRate, visitedSinceLastValve + `|${position.name}|`))
         }
     }
     // when you do open this one
-    if (valvesLeftToOpen.has(position.name) && remainingTime > 0) {
+    if (valvesLeftToOpen.indexOf(position.name) >= 0 && remainingTime > 0) {
         remainingTime--
         if (remainingTime > 0) {
             for (const tunnel of position.tunnels) {
-                const newValvesLeftToOpen = new Set(valvesLeftToOpen.values())
-                newValvesLeftToOpen.delete(position.name)
-                choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, newValvesLeftToOpen, totalFlowRate + position.flowRate * remainingTime, `|${position.name}|`))
+                valvesLeftToOpen = valvesLeftToOpen.replace(`|${position.name}|`, '')
+                choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, valvesLeftToOpen, totalFlowRate + position.flowRate * remainingTime, `|${position.name}|`))
             }
         }
     }
