@@ -39,8 +39,8 @@ function bestFlowChoice(position, remainingTime, valvesLeftToOpen, totalFlowRate
     if (valvesLeftToOpen.indexOf(position.name) >= 0 && remainingTime > 0) {
         remainingTime--
         if (remainingTime > 0) {
+            valvesLeftToOpen = valvesLeftToOpen.replace(`|${position.name}|`, '')
             for (const tunnel of position.tunnels) {
-                valvesLeftToOpen = valvesLeftToOpen.replace(`|${position.name}|`, '')
                 choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, valvesLeftToOpen, totalFlowRate + position.flowRate * remainingTime, `|${position.name}|`))
             }
         }
@@ -60,5 +60,5 @@ const iterations = 30
 const startTimer = new Date()
 const bestForPart1 = bestFlowChoice(findValve('AA'), iterations, valvesLeftToOpen, 0)
 const duration = new Date() - startTimer
-console.log(`Ran for ${duration}ms`)
+console.log(`Ran for ${duration}ms == ${duration / 1000}s == ${duration / 1000 / 60}m`)
 console.log(`Answer for part 1: ${bestForPart1.totalFlowRate}`)
