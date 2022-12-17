@@ -24,7 +24,7 @@ function findValve(name) {
 
 const paths = []
 
-function bestFlowChoice(position, cameFrom, remainingTime, valvesLeftToOpen, totalFlowRate) {
+function bestFlowChoice(position, remainingTime, valvesLeftToOpen, totalFlowRate, visitedSinceLastValve = '') {
     if (remainingTime <= 0 || valvesLeftToOpen.size === 0) {
         return { totalFlowRate: totalFlowRate }
     }
@@ -32,8 +32,8 @@ function bestFlowChoice(position, cameFrom, remainingTime, valvesLeftToOpen, tot
     // when you do not open this one
     for (const tunnel of position.tunnels) {
         // avoid turning right back around if you didn't open this one (wasteful travel)
-        if (tunnel !== cameFrom) {
-            choices.push(bestFlowChoice(findValve(tunnel), position.name, remainingTime - 1, new Set(valvesLeftToOpen.values()), totalFlowRate))
+        if (visitedSinceLastValve.indexOf(`|${tunnel}|`) === -1) {
+            choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, new Set(valvesLeftToOpen.values()), totalFlowRate, visitedSinceLastValve + `|${position.name}|`))
         }
     }
     // when you do open this one
@@ -41,9 +41,9 @@ function bestFlowChoice(position, cameFrom, remainingTime, valvesLeftToOpen, tot
         remainingTime--
         if (remainingTime > 0) {
             for (const tunnel of position.tunnels) {
-                const newvalvesLeftToOpen = new Set(valvesLeftToOpen.values())
-                newvalvesLeftToOpen.delete(position.name)
-                choices.push(bestFlowChoice(findValve(tunnel), position.name, remainingTime - 1, newvalvesLeftToOpen, totalFlowRate + position.flowRate * remainingTime))
+                const newValvesLeftToOpen = new Set(valvesLeftToOpen.values())
+                newValvesLeftToOpen.delete(position.name)
+                choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, newValvesLeftToOpen, totalFlowRate + position.flowRate * remainingTime, `|${position.name}|`))
             }
         }
     }
@@ -59,10 +59,8 @@ function bestFlowChoice(position, cameFrom, remainingTime, valvesLeftToOpen, tot
 
 const inputs = getInputs('input')
 const iterations = 30
-console.log(`Expected answer for part 1: 1488`)
 const startTimer = new Date()
-const bestForPart1 = bestFlowChoice(findValve('AA'), 'AA', iterations, valvesLeftToOpen, 0)
+const bestForPart1 = bestFlowChoice(findValve('AA'), iterations, valvesLeftToOpen, 0)
 const duration = new Date() - startTimer
-console.log(`Took ${duration}ms`)
-
+console.log(`Ran for ${duration}ms`)
 console.log(`Answer for part 1: ${bestForPart1.totalFlowRate}`)
