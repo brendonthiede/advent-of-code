@@ -23,7 +23,6 @@ function dropRocks(jets, rocks, numberOfRocks) {
 
     let highest = 0
     while (rockCount < numberOfRocks) {
-        const newHeights = new Set()
         const currentRock = rocks[currentRockIndex]
         let rockX = 2
         let rockY = highest + 2 + currentRock.length
@@ -45,21 +44,39 @@ function dropRocks(jets, rocks, numberOfRocks) {
             }
         }
 
-        let state = `${jetIndex};${currentRockIndex};`
-        const chamberTop = []
-        for (let y = highest; y >= highest - 8; y--) {
+        const chamberShape = []
+        for (let y = highest + 1; y >= highest - 50; y--) {
             let row = ''
-            for (let x = 0; x < 7; x++) row += chamber.has(`${x},${y}`) ? '#' : '.'
-            chamberTop.push(row)
+            for (let x = 0; x < 7; x++) {
+                // am I wearing a hat? then I don't matter
+                if (chamber.has(`${x},${y}`)) {
+                    if (chamber.has(`${Math.max(x, 1) - 1},${y}`) &&
+                        chamber.has(`${x},${y + 1}`) &&
+                        chamber.has(`${Math.min(x, 5) + 1},${y}`)) {
+                        row += '.'
+                    } else {
+                        row += '#'
+                    }
+                } else {
+                    row += '.'
+                }
+            }
+            // ignore empty rows and stop on the first full row
+            if (row === '.......') {
+                continue
+            } else if (row === '#######') {
+                break
+            }
+            chamberShape.push(row)
         }
-        state += chamberTop.join(';')
 
+        const historyKey = [jetIndex, currentRockIndex, ...chamberShape].join(';')
 
         highest = Math.max(...Array.from(chamber)
             .map(val => val.split(',')[1])
             .map(Number).concat([-1])) + 1
-        if (stoneAge.has(state)) {
-            const history = stoneAge.get(state)
+        if (stoneAge.has(historyKey)) {
+            const history = stoneAge.get(historyKey)
             const rockIncrease = rockCount - history.rockCount
             const heightIncrease = highest - history.height
 
@@ -67,7 +84,7 @@ function dropRocks(jets, rocks, numberOfRocks) {
             overallIncrease += size * heightIncrease
             rockCount += size * rockIncrease
         } else {
-            stoneAge.set(state, { height: highest, rockCount })
+            stoneAge.set(historyKey, { height: highest, rockCount })
         }
         rockCount++
         currentRockIndex = (currentRockIndex + 1) % rocks.length
