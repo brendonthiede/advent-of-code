@@ -2,10 +2,10 @@ function mixSequence(sequence, repetitions = 1, multiplier = 1) {
     const mixedCopy = sequence.slice()
     for (let rep = 0; rep < repetitions; rep++) {
         for (let i = 0; i < sequence.length; i++) {
-            if (rep === 0 && multiplier > 1) {
-                sequence[i].value *= multiplier
-            }
             const item = sequence[i]
+            if (rep === 0 && multiplier > 1) {
+                item.value *= multiplier
+            }
             const currentIndex = mixedCopy.indexOf(item)
             mixedCopy.splice(currentIndex, 1)
             const newIndex = (currentIndex + item.value) % mixedCopy.length
