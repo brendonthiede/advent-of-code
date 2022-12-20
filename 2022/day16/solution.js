@@ -1,10 +1,8 @@
-const path = require('path');
-
-fs = require('fs');
-let valvesLeftToOpen = ''
+const fs = require('fs')
 
 function getInputs(type) {
-    const inputs = fs.readFileSync(`${__dirname}/${type}.txt`, 'utf8')
+    const neighbors = new Map(), rates = new Map()
+    return fs.readFileSync(`${__dirname}/${type}.txt`, 'utf8')
         .split(/\r?\n/)
         .map(row => {
             const matches = row.match(/Valve (\w+) has flow rate=(\d+); tunnel[s]? lead[s]? to valve[s]? (.*)/)
@@ -13,48 +11,111 @@ function getInputs(type) {
                 flowRate: parseInt(matches[2]),
                 tunnels: matches[3].split(', ')
             }
-            if (details.flowRate > 0) valvesLeftToOpen += `|${details.name}|`
             return details
         })
-    return new Map(inputs.map(v => [v.name, v]))
+        .reduce((acc, details) => {
+            acc.neighbors.set(details.name, details.tunnels)
+            acc.rates.set(details.name, details.flowRate)
+            return acc
+        }, { neighbors, rates })
 }
 
-function findValve(name) {
-    return inputs.get(name)
-}
+const breadthFirstSearch = (neighbors, startNode, targetNode) => {
+    const queue = []
+    const visited = [startNode]
 
-function bestFlowChoice(position, remainingTime, valvesLeftToOpen, totalFlowRate, visitedSinceLastValve = '') {
-    if (remainingTime === 0 || valvesLeftToOpen.length === 0) {
-        return { totalFlowRate: totalFlowRate }
-    }
-    const choices = []
+    if (startNode !== targetNode)
+        queue.push([startNode])
 
-    // when you do open this one
-    if (valvesLeftToOpen.indexOf(position.name) >= 0) {
-        choices.push(bestFlowChoice(position, remainingTime - 1, valvesLeftToOpen.replace(`|${position.name}|`, ''), totalFlowRate + position.flowRate * (remainingTime - 1), `|${position.name}|`))
-    }
+    while (queue.length > 0) {
+        const path = queue.shift()
+        const node = path[path.length - 1]
 
-    // when you do not open this one
-    for (const tunnel of position.tunnels) {
-        // avoid turning right back around if you didn't open this one (wasteful travel)
-        if (visitedSinceLastValve.indexOf(`|${tunnel}|`) === -1) {
-            choices.push(bestFlowChoice(findValve(tunnel), remainingTime - 1, valvesLeftToOpen, totalFlowRate, visitedSinceLastValve + `|${position.name}|`))
+        for (let neighbor of neighbors.get(node)) {
+            if (visited.includes(neighbor)) continue
+
+            if (neighbor == targetNode) return path.concat([neighbor])
+            visited.push(neighbor)
+            queue.push(path.concat([neighbor]))
         }
     }
 
-    const bestChoice = choices.reduce((best, choice) => {
-        if (choice.totalFlowRate > best.totalFlowRate) {
-            return { totalFlowRate: choice.totalFlowRate }
-        }
-        return best
-    }, { totalFlowRate: totalFlowRate })
-    return bestChoice
+    return [startNode]
 }
 
-const inputs = getInputs('input')
-const iterations = 30
-const startTimer = new Date()
-const bestForPart1 = bestFlowChoice(findValve('AA'), iterations, valvesLeftToOpen, 0)
-const duration = new Date() - startTimer
-console.log(`Ran for ${duration}ms == ${duration / 1000}s == ${duration / 1000 / 60}m`)
-console.log(`Answer for part 1: ${bestForPart1.totalFlowRate}`)
+const findRates = (distances, startNode, time, leftToOpen, alreadyOpened = new Map()) => {
+    const allRates = [alreadyOpened]
+
+    leftToOpen.forEach((targetNode, index) => {
+        const remainingTime = time - 1 - distances.get(startNode).get(targetNode)
+        if (remainingTime <= 0) return
+        const stillLeftToOpen = leftToOpen.filter((_, i) => i !== index)
+        const nowOpened = (new Map([...alreadyOpened.entries()])).set(targetNode, remainingTime)
+        allRates.push(...findRates(distances, targetNode, remainingTime, stillLeftToOpen, nowOpened))
+    })
+
+    return allRates
+}
+
+function getBestPath(input, timeLimit, hasHelper = false) {
+    const distances = new Map()
+    const allTunnels = [...input.neighbors.keys()]
+    allTunnels.forEach(startNode => {
+        allTunnels.forEach(targetNode => {
+            if (!distances.has(startNode)) distances.set(startNode, new Map())
+            distances.get(startNode).set(targetNode, breadthFirstSearch(input.neighbors, startNode, targetNode).length - 1)
+        })
+    })
+
+    let valuableTunnels = allTunnels.filter(key => input.rates.get(key) > 0)
+    let allRates = findRates(distances, 'AA', timeLimit, valuableTunnels)
+
+    if (!hasHelper) {
+        const bestRates = allRates.map(journey =>
+            [...journey.entries()]
+                .map(([key, value]) => input.rates.get(key) * value)
+                .reduce((acc, value) => acc + value, 0))
+        return Math.max(...bestRates)
+    }
+
+    const bestFlows = new Map()
+    allRates.forEach(rate => {
+        let nodes = [...rate.keys()].sort().join(',')
+        if (nodes.length === 0) return
+        const flowRate = [...rate.entries()].reduce((acc, [key, value]) => acc + input.rates.get(key) * value, 0)
+
+        bestFlows.set(nodes, Math.max(flowRate, bestFlows.has(nodes) ? bestFlows.get(nodes) : 0))
+    })
+
+    const bestFlowsKeys = [...bestFlows.keys()]
+    let highest = 0
+    bestFlowsKeys.forEach(myPath => {
+        bestFlowsKeys.forEach(helperPath => {
+            const myValves = myPath.split(',')
+            const helperValves = helperPath.split(',')
+            const allValves = new Set(myValves.concat(helperValves))
+
+            if (allValves.size == (myValves.length + helperValves.length)) {
+                highest = Math.max(bestFlows.get(myPath) + bestFlows.get(helperPath), highest)
+            }
+        })
+    })
+
+    return highest
+}
+
+
+const inputType = 'input'
+const inputs = getInputs(inputType)
+
+const part1 = getBestPath(inputs, 30, false)
+if (inputType === 'sample' && part1 != 1651) {
+    throw new Error(`Part 1 failed: expected 1651 but got ${part1}`)
+}
+console.log(`Answer for part 1: ${part1}`)
+
+const part2 = getBestPath(inputs, 26, true)
+if (inputType === 'sample' && part2 != 1707) {
+    throw new Error(`Part 2 failed: expected 1707 but got ${part2}`)
+}
+console.log(`Answer for part 2: ${part2}`)
