@@ -31,7 +31,7 @@ function getCoordinates(mixed) {
 
 const fs = require('fs')
 const sequence = fs.readFileSync(`${__dirname}/input.txt`, 'utf8')
-    .split(/\r?\n/).map((val, index) => { return { value: parseInt(val) } })
+    .split(/\r?\n/).map((val) => { return { value: parseInt(val) } })
 
 let mixed = mixSequence(sequence)
 console.log(`Answer for part 1: ${getCoordinates(mixed)}`)
