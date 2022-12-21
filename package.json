@@ -1,0 +1,21 @@
+{
+  "name": "advent-of-code",
+  "version": "1.0.0",
+  "description": "Collections of solutions to Advent of Code (https://adventofcode.com/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brendonthiede/advent-of-code.git"
+  },
+  "keywords": [
+    "javascript",
+    "adventofcode"
+  ],
+  "author": "brendonthiede",
+  "bugs": {
+    "url": "https://github.com/brendonthiede/advent-of-code/issues"
+  },
+  "homepage": "https://github.com/brendonthiede/advent-of-code#readme",
+  "devDependencies": {
+    "big.js": "^6.2.1"
+  }
+}
