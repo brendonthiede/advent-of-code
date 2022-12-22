@@ -90,7 +90,6 @@ function needsToKeepGoing(expected, expression, humn, directionOfIncrease) {
 // original solution for part 2 using trial and error
 function digitFinder(expression, expected) {
     let ceiling = 1
-    let floor = 0
     let humn = `${ceiling}`
     let digits = ''
 
@@ -99,7 +98,6 @@ function digitFinder(expression, expected) {
 
     // magnitude of humn
     while (needsToKeepGoing(expected, expression, humn, directionOfIncrease)) {
-        floor = ceiling
         ceiling *= 10
         humn = `${digits}${ceiling}`
     }
