@@ -73,8 +73,6 @@ Follow the path given in the monkeys' notes. What is the final password?
 
 Your puzzle answer was 64256.
 
-The first half of this puzzle is complete! It provides one gold star: *
-
 --- Part Two ---
 As you reach the force field, you think you hear some Elves in the distance. Perhaps they've already arrived?
 
@@ -141,3 +139,7 @@ Using the same method of drawing the last facing you had with an arrow on each t
 The final password is still calculated from your final position and facing from the perspective of the map. In this example, the final row is 5, the final column is 7, and the final facing is 3, so the final password is 1000 * 5 + 4 * 7 + 3 = 5031.
 
 Fold the map into a cube, then follow the path given in the monkeys' notes. What is the final password?
+
+Your puzzle answer was 109224.
+
+Both parts of this puzzle are complete! They provide two gold stars: **
