@@ -43,45 +43,13 @@ function printElves(elfPositions, round) {
     }
 }
 
-function canMove(elfPositions, x, y, cardinalDirection) {
+function getProposal(elfPositions, x, y, cardinalDirection) {
     const checks = directions.get(cardinalDirection)
     for (let i = 0; i < checks.length; i++) {
         const [dx, dy] = checks[i]
-        if (elfPositions.has(`${x + dx},${y + dy}`)) return false
+        if (elfPositions.has(`${x + dx},${y + dy}`)) return ''
     }
-    return true
-}
-
-function north(x, y) {
-    return `${x},${y - 1}`
-}
-
-function northWest(x, y) {
-    return `${x - 1},${y - 1}`
-}
-
-function northEast(x, y) {
-    return `${x + 1},${y - 1}`
-}
-
-function south(x, y) {
-    return `${x},${y + 1}`
-}
-
-function southWest(x, y) {
-    return `${x - 1},${y + 1}`
-}
-
-function southEast(x, y) {
-    return `${x + 1},${y + 1}`
-}
-
-function west(x, y) {
-    return `${x - 1},${y}`
-}
-
-function east(x, y) {
-    return `${x + 1},${y}`
+    return `${x + checks[1][0]},${y + checks[1][1]}`
 }
 
 function hasNeighbor(elfPositions, x, y) {
@@ -94,41 +62,8 @@ function hasNeighbor(elfPositions, x, y) {
     return false
 }
 
-function proposeNorth(elfPositions, x, y) {
-    if (!elfPositions.has(north(x, y)) && !elfPositions.has(northEast(x, y)) && !elfPositions.has(northWest(x, y))) {
-        return north(x, y)
-    }
-    return ''
-}
-
-function proposeSouth(elfPositions, x, y) {
-    if (!elfPositions.has(south(x, y)) && !elfPositions.has(southEast(x, y)) && !elfPositions.has(southWest(x, y))) {
-        return south(x, y)
-    }
-    return ''
-}
-
-function proposeWest(elfPositions, x, y) {
-    if (!elfPositions.has(west(x, y)) && !elfPositions.has(northWest(x, y)) && !elfPositions.has(southWest(x, y))) {
-        return west(x, y)
-    }
-    return ''
-}
-
-function proposeEast(elfPositions, x, y) {
-    if (!elfPositions.has(east(x, y)) && !elfPositions.has(northEast(x, y)) && !elfPositions.has(southEast(x, y))) {
-        return east(x, y)
-    }
-    return ''
-}
-
 function moveIt(elfPositions, rounds, isDebugEnabled) {
-    const directives = [
-        proposeNorth,
-        proposeSouth,
-        proposeWest,
-        proposeEast
-    ]
+    const directives = ['N', 'S', 'W', 'E',]
     for (let round = 0; round < rounds; round++) {
         // get proposals
         const newElfPositions = new Map()
@@ -136,8 +71,8 @@ function moveIt(elfPositions, rounds, isDebugEnabled) {
             const [x, y] = pos.split(',').map((val) => parseInt(val))
             let proposal = ''
             if (hasNeighbor(elfPositions, x, y)) {
-                for (let i = 0; i < directives.length; i++) {
-                    proposal = directives[i](elfPositions, x, y)
+                for (let directive of directives) {
+                    proposal = getProposal(elfPositions, x, y, directive)
                     if (proposal.length > 0) {
                         if (newElfPositions.has(proposal)) {
                             newElfPositions.get(proposal).push(`${x},${y}`)
