@@ -137,6 +137,6 @@ const blueprints = fs.readFileSync(`${__dirname}/input.txt`, 'utf8')
     })
 
 const totalQualityLevels = blueprints.reduce((total, blueprint) => total + (blueprint.id * getMostGeodesForBlueprint(blueprint, 24)), 0)
-console.log(`Answer part 1: ${totalQualityLevels}`)
+console.log(`Answer for part 1: ${totalQualityLevels}`)
 const firstThreeProduct = blueprints.slice(0, 3).reduce((total, blueprint) => total * getMostGeodesForBlueprint(blueprint, 32), 1)
-console.log(`Answer part 2: ${firstThreeProduct}`)
+console.log(`Answer for part 2: ${firstThreeProduct}`)
