@@ -99,5 +99,5 @@ const rocks = fs.readFileSync(`${__dirname}/rocks.txt`, 'utf8')
     .map(line => line.split(/\r?\n/).map(row => row.split('')))
 const jets = fs.readFileSync(`${__dirname}/input.txt`, 'utf8')
 
-console.log(`${dropRocks(jets, rocks, 2022)}`)
-console.log(`${dropRocks(jets, rocks, 1000000000000)}`)
+console.log(`Answer for part 1: ${dropRocks(jets, rocks, 2022)}`)
+console.log(`Answer for part 2: ${dropRocks(jets, rocks, 1000000000000)}`)
