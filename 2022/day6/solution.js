@@ -20,4 +20,4 @@ function findUniqueSequence(sequenceLength) {
 }
 
 console.log("Answer for part 1: " + findUniqueSequence(4))
-console.log("Answer for part 1: " + findUniqueSequence(14))
+console.log("Answer for part 2: " + findUniqueSequence(14))
