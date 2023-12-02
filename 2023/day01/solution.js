@@ -9,21 +9,27 @@ const part1 = inputs.map(line => line.replace(/\D/g, ''))
 
 function partTwoConversion(line) {
     const numberWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
-    // can't just replace the word, because it may be part of another word, but duplicating the word for now will work
-    numberWords.forEach((word, index) => {
-        const regex = new RegExp(word, 'gi');
-        line = line.replace(regex, word + index + word);
-    })
+    let numberLine = "";
+    for (let i = 0; i < line.length; i++) {
+        if (line[i].match(/\d/)) {
+            numberLine += line[i];
+        } else {
+            numberWords.forEach((word, index) => {
+                if (line.slice(i, i + word.length) === word) {
+                    numberLine += index;
+                }
+            });
+        }
+    }
 
-    return line;
+    return numberLine;
 }
 
 const part2 = inputs
     .map(line => partTwoConversion(line))
-    .map(line => line.replace(/\D/g, ''))
-    .map(line => line.slice(0, 1) + line.slice(-1))
-    .map(line => parseInt(line))
-    .reduce((a, b) => a + b, 0);
+   .map(line => line.slice(0, 1) + line.slice(-1))
+   .map(line => parseInt(line))
+   .reduce((a, b) => a + b, 0);
 
 console.log("Answer for part 1: " + part1);
 console.log("Answer for part 2: " + part2);
