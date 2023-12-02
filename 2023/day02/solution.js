@@ -46,9 +46,5 @@ const possibleGames = games.filter(game => {
     return true;
 });
 
-games.forEach(game => {
-    console.log(JSON.stringify(game));
-});
-
 console.log("Answer for part 1: " + possibleGames.reduce((total, game) => total + game.game, 0));
 console.log("Answer for part 2: " + games.reduce((total, game) => total + game.power, 0));
