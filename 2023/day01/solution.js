@@ -27,9 +27,9 @@ function partTwoConversion(line) {
 
 const part2 = inputs
     .map(line => partTwoConversion(line))
-   .map(line => line.slice(0, 1) + line.slice(-1))
-   .map(line => parseInt(line))
-   .reduce((a, b) => a + b, 0);
+    .map(line => line.slice(0, 1) + line.slice(-1))
+    .map(line => parseInt(line))
+    .reduce((a, b) => a + b, 0);
 
 console.log("Answer for part 1: " + part1);
 console.log("Answer for part 2: " + part2);
