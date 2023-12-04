@@ -23,7 +23,7 @@ function pullNumber(row, col) {
         endCol++;
     }
 
-    // extract each digit and concatenate them and replace the original with a .
+    // extract each digit and concatenate them and replace the original with a . to avoid duplicate usage
     let number = "";
     for (let i = startCol; i <= endCol; i++) {
         number += input[row][i];
@@ -35,17 +35,15 @@ function pullNumber(row, col) {
 reset();
 for (let row = 0; row < input.length; row++) {
     for (let col = 0; col < input[row].length; col++) {
-        // if pattern doesn't match regex [^0-9.] then print a message
+        // find non-numbers that are also not . (dot)
         if (!input[row][col].match(/[0-9.]/)) {
-            // look in all directions for a number
+            // then look in all directions for a number
             for (let i = -1; i < 2; i++) {
                 for (let j = -1; j < 2; j++) {
-                    // if the cell is out of bounds, skip it
                     if (row + i < 0 || row + i >= input.length || col + j < 0 || col + j >= input[row].length) {
                         continue;
                     }
-                    // if the cell is a number, print it
-                    if (input[row + i][col + j].match(/[0-9]/)) {
+                    if (input[row + i][col + j].match(/\d/)) {
                         total += pullNumber(row + i, col + j);
                     }
                 }
