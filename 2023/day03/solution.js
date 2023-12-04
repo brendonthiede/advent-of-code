@@ -23,7 +23,7 @@ function pullNumber(row, col) {
         endCol++;
     }
 
-    // extract each digit and concatenate them and replace the original with a . to avoid duplicate usage
+    // extract each digit and concatenate them and replace the original with a . (dot) to avoid duplicate usage
     let number = "";
     for (let i = startCol; i <= endCol; i++) {
         number += input[row][i];
@@ -57,10 +57,9 @@ const part1 = total;
 reset();
 for (let row = 0; row < input.length; row++) {
     for (let col = 0; col < input[row].length; col++) {
-        // if pattern doesn't match regex [^0-9.] then print a message
+        // look explicitly for * this time
         if (input[row][col] === '*') {
-            let found = 0;
-            let numbers = [];
+            const numbers = [];
             // look in all directions for a number
             for (let i = -1; i < 2; i++) {
                 for (let j = -1; j < 2; j++) {
@@ -70,12 +69,12 @@ for (let row = 0; row < input.length; row++) {
                     }
                     // if the cell is a number, print it
                     if (input[row + i][col + j].match(/\d/)) {
-                        found++;
                         numbers.push(pullNumber(row + i, col + j));
                     }
                 }
             }
-            if (found === 2) {
+            // verify that we found exactly 2 numbers
+            if (numbers.length === 2) {
                 total += numbers[0] * numbers[1];
             }
         }
