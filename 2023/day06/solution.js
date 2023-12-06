@@ -13,18 +13,13 @@ function distanceForChargeTime(chargeTime, totalTime) {
 
 const raceResults = [];
 
-for (let i = 0; i < times.length; i++) {
-    const totalTime = times[i];
-    const distanceToBeat = distances[i];
-
-    raceResults.push({
+function getRaceResult(totalTime, distanceToBeat) {
+    const raceResult = {
         totalTime,
         distanceToBeat
-    });
+    };
 
     // the maximum distance for charge times 1..totalTime will always be in the middle
-    
-    console.log(`${times[i]}: ${distanceForChargeTime(times[i], 2503)}`);
     // use binary search to find the lowest time that works
     let isLowEndFound = false;
     let highEnd = Math.floor(totalTime / 2);
@@ -35,7 +30,7 @@ for (let i = 0; i < times.length; i++) {
             lowEnd = Math.floor(lowEnd / 2);
         } else if (distanceForChargeTime(lowEnd + 1, totalTime) > distanceToBeat) {
             lowEnd = lowEnd + 1;
-            raceResults[i].lowEnd = lowEnd;
+            raceResult.lowEnd = lowEnd;
             isLowEndFound = true;
         } else {
             lowEnd = Math.floor((highEnd + lowEnd) / 2);
@@ -51,14 +46,23 @@ for (let i = 0; i < times.length; i++) {
             highEnd = Math.floor((totalTime + lowEnd) / 2);
         } else if (distanceForChargeTime(highEnd - 1, totalTime) > distanceToBeat) {
             highEnd = highEnd - 1;
-            raceResults[i].highEnd = highEnd;
+            raceResult.highEnd = highEnd;
             isHighEndFound = true;
         } else {
             highEnd = Math.floor((highEnd + lowEnd) / 2);
         }
     }
 
-    raceResults[i].winCount = raceResults[i].highEnd - raceResults[i].lowEnd + 1;
+    raceResult.winCount = raceResult.highEnd - raceResult.lowEnd + 1;
+
+    return raceResult;
+}
+
+for (let i = 0; i < times.length; i++) {
+    const totalTime = times[i];
+    const distanceToBeat = distances[i];
+
+    raceResults.push(getRaceResult(totalTime, distanceToBeat));
 }
 
 console.log(JSON.stringify(raceResults, null, 2));
@@ -72,5 +76,5 @@ const part2 = 0;
 if (inputType === 'sample') {
     console.log(`Answer for part 1: ${part1} (should be 288)`);
 } else {
-    console.log(`Answer for part 1: ${part1}`);
+    console.log(`Answer for part 1: ${part1} (should be 1084752)`);
 }
