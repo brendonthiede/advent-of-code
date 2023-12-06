@@ -71,10 +71,20 @@ const part1 = raceResults.reduce((acc, result) => {
     return acc * result.winCount;
 }, 1);
 
-const part2 = 0;
+const part2Time = parseInt(times.reduce((acc, time) => {
+    return acc + time;
+}, ''));
+
+const part2Distance = parseInt(distances.reduce((acc, distance) => {
+    return acc + distance;
+}, ''));
+
+const part2 = getRaceResult(part2Time, part2Distance).winCount;
 
 if (inputType === 'sample') {
     console.log(`Answer for part 1: ${part1} (should be 288)`);
+    console.log(`Answer for part 2: ${part2} (should be 71503)`);
 } else {
     console.log(`Answer for part 1: ${part1} (should be 1084752)`);
+    console.log(`Answer for part 2: ${part2} (should be 28228952)`);
 }
