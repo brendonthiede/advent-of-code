@@ -121,14 +121,6 @@ if (inputType === 'sample') {
   console.log(`LocationsPart1: ${JSON.stringify(locationsPart1, null, 2)}`);
 }
 
-const part1 = Math.min(...locationsPart1);
-
-if (inputType === 'sample') {
-  console.log(`Answer for part 1: ${part1} (should be 35)`);
-} else {
-  console.log(`Answer for part 1: ${part1} (should be 51752125)`);
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,13 +128,6 @@ if (inputType === 'sample') {
 
 // the numbers in input.txt are way too big to brute force
 // you can collapse things into distinct ranges, since we know the pattern for ranges
-
-function fixedWidth(val) {
-  const width = maxInt.toString().length;
-  const asString = val.toString();
-  const spaces = ' '.repeat(width - asString.length);
-  return `${spaces}${asString}`;
-}
 
 // first, collapse the seeds to locations mappings, going through all the intermediate mappings
 const finalSeedMapping = {
@@ -171,30 +156,16 @@ while (finalSeedMapping.destinationType !== 'location') {
     });
 
     if (DEBUG) {
+      const tableData = [];
       for (let i = 0; i < Math.max(finalSeedMapping.mappings.length, nextMapping.mappings.length); i++) {
-        let output = '';
-        if (i < finalSeedMapping.mappings.length) {
-          output += `${fixedWidth(finalSeedMapping.mappings[i].sourceRangeStart)} - ${fixedWidth(finalSeedMapping.mappings[i].sourceRangeEnd)}\t`;
-        } else {
-          output += `${fixedWidth('')}   ${fixedWidth('')}\t`;
-        }
-        if (i < finalSeedMapping.mappings.length) {
-          output += `${fixedWidth(finalSeedMapping.mappings[i].destinationRangeStart)} - ${fixedWidth(finalSeedMapping.mappings[i].destinationRangeEnd)}\t`;
-        } else {
-          output += `${fixedWidth('')}   ${fixedWidth('')}\t`;
-        }
-        if (i < nextMapping.mappings.length) {
-          output += `${fixedWidth(nextMapping.mappings[i].sourceRangeStart)} - ${fixedWidth(nextMapping.mappings[i].sourceRangeEnd)}\t`;
-        } else {
-          output += `${fixedWidth('')}   ${fixedWidth('')}\t`;
-        }
-        if (i < nextMapping.mappings.length) {
-          output += `${fixedWidth(nextMapping.mappings[i].destinationRangeStart)} - ${fixedWidth(nextMapping.mappings[i].destinationRangeEnd)}\t`;
-        } else {
-          output += `${fixedWidth('')}   ${fixedWidth('')}\t`;
-        }
-        console.log(output);
+        tableData.push({
+          'Seed Source Range': finalSeedMapping.mappings[i] !== undefined ? `${finalSeedMapping.mappings[i].sourceRangeStart} - ${finalSeedMapping.mappings[i].sourceRangeEnd}` : null,
+          'Seed Dest Range': finalSeedMapping.mappings[i] !== undefined ? `${finalSeedMapping.mappings[i].destinationRangeStart} - ${finalSeedMapping.mappings[i].destinationRangeEnd}` : null,
+          'Next Source Range': nextMapping.mappings[i] !== undefined ? `${nextMapping.mappings[i].sourceRangeStart} - ${nextMapping.mappings[i].sourceRangeEnd}` : null,
+          'Next Dest Range': nextMapping.mappings[i] !== undefined ? `${nextMapping.mappings[i].destinationRangeStart} - ${nextMapping.mappings[i].destinationRangeEnd}` : null
+        });
       }
+      console.table(tableData);
     }
 
     // for each seed mapping entry, evaluate it against the next mapping entries until we find a match or make a change
@@ -290,17 +261,6 @@ while (finalSeedMapping.destinationType !== 'location') {
     finalSeedMapping.mappings[i].destinationOffset = finalSeedMapping.mappings[i].destinationRangeStart - finalSeedMapping.mappings[i].sourceRangeStart;
   }
 
-  if (DEBUG) {
-    for (let i = 0; i < Math.max(finalSeedMapping.mappings.length, nextMapping.mappings.length); i++) {
-      let output = '';
-      output += `${fixedWidth(finalSeedMapping.mappings[i].sourceRangeStart)} - ${fixedWidth(finalSeedMapping.mappings[i].sourceRangeEnd)}\t`;
-      output += `${fixedWidth(finalSeedMapping.mappings[i].destinationRangeStart)} - ${fixedWidth(finalSeedMapping.mappings[i].destinationRangeEnd)}\t`;
-      output += `${fixedWidth(nextMapping.mappings[i].sourceRangeStart)} - ${fixedWidth(nextMapping.mappings[i].sourceRangeEnd)}\t`;
-      output += `${fixedWidth(nextMapping.mappings[i].destinationRangeStart)} - ${fixedWidth(nextMapping.mappings[i].destinationRangeEnd)}`;
-      console.log(output);
-    }
-  }
-
   // move on to the next map
   finalSeedMapping.destinationType = nextMapping.destinationType;
 }
@@ -312,14 +272,8 @@ finalSeedMapping.mappings.sort((a, b) => {
 
 if (DEBUG) {
   console.log(`\n\nFinal, Full Seed Mapping to Location:\n`);
-  for (let i = 0; i < finalSeedMapping.mappings.length; i++) {
-    let output = '';
-    output += `${fixedWidth(finalSeedMapping.mappings[i].sourceRangeStart)} - ${fixedWidth(finalSeedMapping.mappings[i].sourceRangeEnd)}\t`;
-    output += `${fixedWidth(finalSeedMapping.mappings[i].destinationRangeStart)} - ${fixedWidth(finalSeedMapping.mappings[i].destinationRangeEnd)}`;
-    console.log(output);
-  }
+  console.table(finalSeedMapping.mappings);
 }
-
 
 // now convert the seeds to ranges
 const seedRanges = [];
@@ -330,7 +284,7 @@ for (let i = 0; i < seeds.length; i += 2) {
   });
 }
 
-
+// same approach as above, but for the seed ranges
 let rangeModified = true;
 while (rangeModified) {
   rangeModified = false;
@@ -342,28 +296,15 @@ while (rangeModified) {
   });
 
   if (DEBUG) {
-    console.log(`\n\nSeed Range         Seed to location mapping`);
+    const tableData = [];
     for (let i = 0; i < Math.max(finalSeedMapping.mappings.length, seedRanges.length); i++) {
-      let output = '';
-      if (i < seedRanges.length) {
-        output += `${fixedWidth(seedRanges[i].start)} - ${fixedWidth(seedRanges[i].end)}`;
-      } else {
-        output += `${fixedWidth('')}   ${fixedWidth('')}`;
-      }
-      output += '\t';
-      if (i < finalSeedMapping.mappings.length) {
-        output += `${fixedWidth(finalSeedMapping.mappings[i].sourceRangeStart)} - ${fixedWidth(finalSeedMapping.mappings[i].sourceRangeEnd)}`;
-      } else {
-        output += `${fixedWidth('')}   ${fixedWidth('')}`;
-      }
-      output += '\t';
-      if (i < finalSeedMapping.mappings.length) {
-        output += `${fixedWidth(finalSeedMapping.mappings[i].destinationRangeStart)} - ${fixedWidth(finalSeedMapping.mappings[i].destinationRangeEnd)}`;
-      } else {
-        output += `${fixedWidth('')}   ${fixedWidth('')}`;
-      }
-      console.log(output);
+      tableData.push({
+        'Seed Range': seedRanges[i] !== undefined ? `${seedRanges[i].start} - ${seedRanges[i].end}` : null,
+        'Seed Source Range': finalSeedMapping.mappings[i] !== undefined ? `${finalSeedMapping.mappings[i].sourceRangeStart} - ${finalSeedMapping.mappings[i].sourceRangeEnd}` : null,
+        'Location Dest Range': finalSeedMapping.mappings[i] !== undefined ? `${finalSeedMapping.mappings[i].destinationRangeStart} - ${finalSeedMapping.mappings[i].destinationRangeEnd}` : null
+      });
     }
+    console.table(tableData);
   }
 
   // loop through the seed ranges
@@ -469,41 +410,30 @@ for (let i = 0; i < seedRanges.length; i++) {
 
 if (DEBUG) {
   console.log(`\n\nFinal, Truncated Seed Ranges and Seed Mapping to Location:`);
-  console.log(`\n\nSeed Range         Seed to location mapping`);
+  const tableData = [];
   for (let i = 0; i < Math.max(truncatedSeedMappings.mappings.length, seedRanges.length); i++) {
-    let output = '';
-    if (i < seedRanges.length) {
-      output += `${fixedWidth(seedRanges[i].start)} - ${fixedWidth(seedRanges[i].end)}`;
-    } else {
-      output += `${fixedWidth('')}   ${fixedWidth('')}`;
-    }
-    output += '\t';
-    if (i < truncatedSeedMappings.mappings.length) {
-      output += `${fixedWidth(truncatedSeedMappings.mappings[i].sourceRangeStart)} - ${fixedWidth(truncatedSeedMappings.mappings[i].sourceRangeEnd)}`;
-    } else {
-      output += `${fixedWidth('')}   ${fixedWidth('')}`;
-    }
-    output += '\t';
-    if (i < truncatedSeedMappings.mappings.length) {
-      output += `${fixedWidth(truncatedSeedMappings.mappings[i].destinationRangeStart)} - ${fixedWidth(truncatedSeedMappings.mappings[i].destinationRangeEnd)}`;
-    } else {
-      output += `${fixedWidth('')}   ${fixedWidth('')}`;
-    }
-    console.log(output);
+    tableData.push({
+      'Seed Range': seedRanges[i] !== undefined ? `${seedRanges[i].start} - ${seedRanges[i].end}` : null,
+      'Seed Source Range': truncatedSeedMappings.mappings[i] !== undefined ? `${truncatedSeedMappings.mappings[i].sourceRangeStart} - ${truncatedSeedMappings.mappings[i].sourceRangeEnd}` : null,
+      'Location Dest Range': truncatedSeedMappings.mappings[i] !== undefined ? `${truncatedSeedMappings.mappings[i].destinationRangeStart} - ${truncatedSeedMappings.mappings[i].destinationRangeEnd}` : null
+    });
   }
-  console.log('\n');
+  console.table(tableData);
 }
 
-// lowest location for a range will be for the start of the range
-const locationsPart2Truncated = [];
-for (let i = 0; i < seedRanges.length; i++) {
-  const mapping = truncatedSeedMappings.mappings[i];
-  locationsPart2Truncated.push(seedRanges[i].start + mapping.destinationOffset);
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const part2 = Math.min(...locationsPart2Truncated);
+const part1 = Math.min(...locationsPart1);
+// lowest location for a range will be for the minimum start of a destination/location range
+const part2 = Math.min(...truncatedSeedMappings.mappings.map(mapping => mapping.destinationRangeStart));
+
 if (inputType === 'sample') {
+  console.log(`Answer for part 1: ${part1} (should be 35)`);
   console.log(`Answer for part 2: ${part2} (should be 46)`);
 } else {
+  console.log(`Answer for part 1: ${part1} (should be 51752125)`);
   console.log(`Answer for part 2: ${part2} (should be 12634632)`);
 }
