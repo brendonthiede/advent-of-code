@@ -5,7 +5,7 @@ fs = require('fs');
 // check for optional command line argument
 let inputType = 'input';
 if (process.argv.length > 2) {
-  inputType = process.argv[2].replace(/\....$/, '');
+  inputType = process.argv[2].replace(/\..{3}$/, '');
 }
 
 let DEBUG = false;
@@ -16,7 +16,7 @@ if (inputType === 'sample' || process.argv.length > 3) {
 const input = fs.readFileSync(`${__dirname}/${inputType}.txt`, 'utf8')
   .split(/\r?\n\r?\n/);
 
-const maxInt = inputType === 'sample' ? 999 : 9999999999; // manual inspection of the input shows that the most digits in any number is 10
+const maxInt = inputType === 'sample' ? 99 : 9999999999; // manual inspection of my input shows that the most digits in any number is 10, 2 for the sample
 const seeds = input[0].replace(/seeds: /, '').split(/ /).map(seed => parseInt(seed));
 const maps = {};
 
@@ -152,116 +152,102 @@ while (finalSeedMapping.destinationType !== 'location') {
     mappings: maps[finalSeedMapping.destinationType].mappings.slice(0)
   }
 
-  // rather lame bubble sort approach to merging the mappings
-  let rangeModified = true;
-  while (rangeModified) {
-    rangeModified = false;
-    // sorting seed mapping by destination range start to line up with the next mapping source range start
-    finalSeedMapping.mappings.sort((a, b) => {
-      return a.destinationRangeStart - b.destinationRangeStart;
-    });
-    nextMapping.mappings.sort((a, b) => {
-      return a.sourceRangeStart - b.sourceRangeStart;
-    });
+  // sorting seed mapping by destination range start to line up with the next mapping source range start
+  finalSeedMapping.mappings.sort((a, b) => {
+    return a.destinationRangeStart - b.destinationRangeStart;
+  });
+  nextMapping.mappings.sort((a, b) => {
+    return a.sourceRangeStart - b.sourceRangeStart;
+  });
 
-    if (DEBUG) {
-      const tableData = [];
-      for (let i = 0; i < Math.max(finalSeedMapping.mappings.length, nextMapping.mappings.length); i++) {
-        tableData.push({
-          'Seed Source Range': finalSeedMapping.mappings[i] !== undefined ? `${finalSeedMapping.mappings[i].sourceRangeStart} - ${finalSeedMapping.mappings[i].sourceRangeEnd}` : null,
-          'Seed Dest Range': finalSeedMapping.mappings[i] !== undefined ? `${finalSeedMapping.mappings[i].destinationRangeStart} - ${finalSeedMapping.mappings[i].destinationRangeEnd}` : null,
-          'Next Source Range': nextMapping.mappings[i] !== undefined ? `${nextMapping.mappings[i].sourceRangeStart} - ${nextMapping.mappings[i].sourceRangeEnd}` : null,
-          'Next Dest Range': nextMapping.mappings[i] !== undefined ? `${nextMapping.mappings[i].destinationRangeStart} - ${nextMapping.mappings[i].destinationRangeEnd}` : null
-        });
-      }
-      console.table(tableData);
+  if (DEBUG) {
+    const tableData = [];
+    for (let i = 0; i < Math.max(finalSeedMapping.mappings.length, nextMapping.mappings.length); i++) {
+      tableData.push({
+        'Seed Source Range': finalSeedMapping.mappings[i] !== undefined ? `${finalSeedMapping.mappings[i].sourceRangeStart} - ${finalSeedMapping.mappings[i].sourceRangeEnd}` : null,
+        'Seed Dest Range': finalSeedMapping.mappings[i] !== undefined ? `${finalSeedMapping.mappings[i].destinationRangeStart} - ${finalSeedMapping.mappings[i].destinationRangeEnd}` : null,
+        'Next Source Range': nextMapping.mappings[i] !== undefined ? `${nextMapping.mappings[i].sourceRangeStart} - ${nextMapping.mappings[i].sourceRangeEnd}` : null,
+        'Next Dest Range': nextMapping.mappings[i] !== undefined ? `${nextMapping.mappings[i].destinationRangeStart} - ${nextMapping.mappings[i].destinationRangeEnd}` : null
+      });
     }
+    console.table(tableData);
+  }
 
-    // for each seed mapping entry, evaluate it against the next mapping entries until we find a match or make a change
-    for (let seedMappingIndex = 0; seedMappingIndex < finalSeedMapping.mappings.length; seedMappingIndex++) {
-      const seedMapping = finalSeedMapping.mappings[seedMappingIndex];
-      for (let sourceIndex = 0; sourceIndex < nextMapping.mappings.length; sourceIndex++) {
-        const sourceMapping = nextMapping.mappings[sourceIndex];
+  // for each seed mapping entry, evaluate it against the next mapping entries until we find a match or make a change
+  for (let seedMappingIndex = 0; seedMappingIndex < finalSeedMapping.mappings.length; seedMappingIndex++) {
+    const seedMapping = finalSeedMapping.mappings[seedMappingIndex];
+    for (let sourceIndex = 0; sourceIndex < nextMapping.mappings.length; sourceIndex++) {
+      const sourceMapping = nextMapping.mappings[sourceIndex];
 
-        // we only care about the mappings where the next mapping source range start matches the seed mapping destination range start
-        if (seedMapping.destinationRangeStart === sourceMapping.sourceRangeStart) {
-          // already handled, i.e. the seed mapping destination range is identical to the next mapping source range
-          if (seedMapping.destinationRangeEnd === sourceMapping.sourceRangeEnd) {
-            break;
-          }
-
-          // changes will be coming
-          rangeModified = true;
-
-          // split the source range
-          if (seedMapping.destinationRangeEnd < sourceMapping.sourceRangeEnd) {
-            if (DEBUG) {
-              console.log(`split the ${finalSeedMapping.destinationType} mapping source range ${sourceMapping.sourceRangeStart} - ${sourceMapping.sourceRangeEnd} at ${seedMapping.destinationRangeEnd}`);
-            }
-            const offset = sourceMapping.destinationOffset;
-
-            const lhsSourceEnd = seedMapping.destinationRangeEnd;
-            const lhsDestinationEnd = lhsSourceEnd + offset;
-
-            const rhsSourceStart = lhsSourceEnd + 1;
-            const rhsSourceEnd = sourceMapping.sourceRangeEnd;
-            const rhsDestinationStart = lhsDestinationEnd + 1;
-            const rhsDestinationEnd = sourceMapping.destinationRangeEnd;
-
-            // update the current entry to end at the beginning of the next mapping range
-            sourceMapping.sourceRangeEnd = lhsSourceEnd;
-            sourceMapping.destinationRangeEnd = lhsDestinationEnd;
-
-            // push new entry for the rest of the next mapping range
-            nextMapping.mappings.push({
-              sourceRangeStart: rhsSourceStart,
-              sourceRangeEnd: rhsSourceEnd,
-              destinationRangeStart: rhsDestinationStart,
-              destinationRangeEnd: rhsDestinationEnd,
-              destinationOffset: offset
-            });
-            break;
-          }
-
-          // split the destination range
-          if (seedMapping.destinationRangeEnd > sourceMapping.sourceRangeEnd) {
-            if (DEBUG) {
-              console.log(`split the seed mapping destination range ${seedMapping.destinationRangeStart} - ${seedMapping.destinationRangeEnd} at ${sourceMapping.sourceRangeEnd}`);
-            }
-
-            const offset = seedMapping.destinationOffset;
-
-            const lhsDestinationEnd = sourceMapping.sourceRangeEnd;
-            const lhsSourceEnd = lhsDestinationEnd - offset;
-
-            const rhsDestinationStart = lhsDestinationEnd + 1;
-            const rhsDestinationEnd = seedMapping.destinationRangeEnd;
-            const rhsSourceStart = lhsSourceEnd + 1;
-            const rhsSourceEnd = seedMapping.sourceRangeEnd;
-
-            // update the current entry to the beginning of the next mapping range
-            seedMapping.sourceRangeEnd = lhsSourceEnd;
-            seedMapping.destinationRangeEnd = lhsDestinationEnd;
-
-            // push new entry to the end of the next mapping range
-            finalSeedMapping.mappings.push({
-              sourceRangeStart: rhsSourceStart,
-              sourceRangeEnd: rhsSourceEnd,
-              destinationRangeStart: rhsDestinationStart,
-              destinationRangeEnd: rhsDestinationEnd,
-              destinationOffset: offset
-            });
-            break;
-          }
+      // we only care about the mappings where the next mapping source range start matches the seed mapping destination range start
+      if (seedMapping.destinationRangeStart === sourceMapping.sourceRangeStart) {
+        // already handled, i.e. the seed mapping destination range is identical to the next mapping source range
+        if (seedMapping.destinationRangeEnd === sourceMapping.sourceRangeEnd) {
+          break;
         }
-      }
 
-      // break out in order to re-sort the mappings and try again
-      if (rangeModified) {
-        break;
+        // split the source range
+        if (seedMapping.destinationRangeEnd < sourceMapping.sourceRangeEnd) {
+          if (DEBUG) {
+            console.log(`split the ${finalSeedMapping.destinationType} mapping source range ${sourceMapping.sourceRangeStart} - ${sourceMapping.sourceRangeEnd} at ${seedMapping.destinationRangeEnd}`);
+          }
+          const offset = sourceMapping.destinationOffset;
+
+          const lhsSourceEnd = seedMapping.destinationRangeEnd;
+          const lhsDestinationEnd = lhsSourceEnd + offset;
+
+          const rhsSourceStart = lhsSourceEnd + 1;
+          const rhsSourceEnd = sourceMapping.sourceRangeEnd;
+          const rhsDestinationStart = lhsDestinationEnd + 1;
+          const rhsDestinationEnd = sourceMapping.destinationRangeEnd;
+
+          // update the current entry to end at the beginning of the next mapping range
+          sourceMapping.sourceRangeEnd = lhsSourceEnd;
+          sourceMapping.destinationRangeEnd = lhsDestinationEnd;
+
+          // push new entry for the rest of the next mapping range
+          nextMapping.mappings.splice(sourceIndex + 1, 0, {
+            sourceRangeStart: rhsSourceStart,
+            sourceRangeEnd: rhsSourceEnd,
+            destinationRangeStart: rhsDestinationStart,
+            destinationRangeEnd: rhsDestinationEnd,
+            destinationOffset: offset
+          });
+        }
+
+        // split the destination range
+        if (seedMapping.destinationRangeEnd > sourceMapping.sourceRangeEnd) {
+          if (DEBUG) {
+            console.log(`split the seed mapping destination range ${seedMapping.destinationRangeStart} - ${seedMapping.destinationRangeEnd} at ${sourceMapping.sourceRangeEnd}`);
+          }
+
+          const offset = seedMapping.destinationOffset;
+
+          const lhsDestinationEnd = sourceMapping.sourceRangeEnd;
+          const lhsSourceEnd = lhsDestinationEnd - offset;
+
+          const rhsDestinationStart = lhsDestinationEnd + 1;
+          const rhsDestinationEnd = seedMapping.destinationRangeEnd;
+          const rhsSourceStart = lhsSourceEnd + 1;
+          const rhsSourceEnd = seedMapping.sourceRangeEnd;
+
+          // update the current entry to the beginning of the next mapping range
+          seedMapping.sourceRangeEnd = lhsSourceEnd;
+          seedMapping.destinationRangeEnd = lhsDestinationEnd;
+
+          // push new entry to the end of the next mapping range
+          finalSeedMapping.mappings.splice(seedMappingIndex + 1, 0, {
+            sourceRangeStart: rhsSourceStart,
+            sourceRangeEnd: rhsSourceEnd,
+            destinationRangeStart: rhsDestinationStart,
+            destinationRangeEnd: rhsDestinationEnd,
+            destinationOffset: offset
+          });
+        }
       }
     }
   }
+
 
   // collapse the mappings
   for (let i = 0; i < finalSeedMapping.mappings.length; i++) {
