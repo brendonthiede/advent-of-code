@@ -276,6 +276,7 @@ while (finalSeedMapping.destinationType !== 'location') {
         }
       }
 
+      // break out in order to re-sort the mappings and try again
       if (rangeModified) {
         break;
       }
