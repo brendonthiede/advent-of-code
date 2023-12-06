@@ -2,8 +2,17 @@ const { exit } = require('process');
 
 fs = require('fs');
 
-const DEBUG = false;
-const inputType = 'input';
+// check for optional command line argument
+let inputType = 'input';
+if (process.argv.length > 2) {
+  inputType = process.argv[2].replace(/\....$/, '');
+}
+
+let DEBUG = false;
+if (inputType === 'sample' || process.argv.length > 3) {
+  DEBUG = true;
+}
+
 const input = fs.readFileSync(`${__dirname}/${inputType}.txt`, 'utf8')
   .split(/\r?\n\r?\n/);
 
