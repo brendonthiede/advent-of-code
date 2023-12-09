@@ -44,15 +44,29 @@ function addUp(histories) {
   });
 }
 
-const histories = [];
+function minusUp(histories) {
+  histories.forEach((history) => {
+    history[history.length - 1].unshift(0);
+    for (let i = history.length - 1; i > 0; i--) {
+      const currentHead = history[i][0];
+      const previousHead = history[i - 1][0];
+      history[i - 1].unshift(previousHead - currentHead);
+    }
+  });
+}
 
+const histories = [];
 drillDown(histories);
 addUp(histories);
+minusUp(histories);
 
 const part1 = histories.map(history => history[0][history[0].length - 1]).reduce((a, b) => a + b, 0);
+const part2 = histories.map(history => history[0][0]).reduce((a, b) => a + b, 0);
 
 if (/sample.*/.test(inputType)) {
   console.log(`Answer for part 1: ${part1} (should be 114)`);
+  console.log(`Answer for part 2: ${part2} (should be 2)`);
 } else {
-  console.log(`Answer for part 1: ${part1}`);
+  console.log(`Answer for part 1: ${part1} (should be 1581679977)`);
+  console.log(`Answer for part 2: ${part2} (should be 889)`);
 }
