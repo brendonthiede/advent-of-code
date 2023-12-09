@@ -1,3 +1,5 @@
+const { assert } = require('console');
+
 fs = require('fs');
 
 // check for optional command line argument
@@ -65,8 +67,12 @@ const part2 = histories.map(history => history[0][0]).reduce((a, b) => a + b, 0)
 
 if (/sample.*/.test(inputType)) {
   console.log(`Answer for part 1: ${part1} (should be 114)`);
+  assert(part1 === 114);
   console.log(`Answer for part 2: ${part2} (should be 2)`);
+  assert(part2 === 2);
 } else {
   console.log(`Answer for part 1: ${part1} (should be 1581679977)`);
+  assert(part1 === 1581679977);
   console.log(`Answer for part 2: ${part2} (should be 889)`);
+  assert(part2 === 889);
 }
