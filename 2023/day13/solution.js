@@ -38,6 +38,7 @@ function lineOfReflection(mirrorMap, maxDifferences) {
     let multiplier = 100;
     if (direction === 'vertical') {
       multiplier = 1;
+      // rotate the map 90 degrees
       const tmp = [];
       for (let i = 0; i < map[0].length; i++) {
         let column = '';
