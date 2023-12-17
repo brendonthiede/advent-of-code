@@ -1,9 +1,10 @@
 const { assert } = require('console');
+const { get } = require('http');
 
 fs = require('fs');
 
 // check for optional command line argument
-let defaultInputType = 'input';
+let defaultInputType = 'sample';
 let inputType = defaultInputType;
 if (process.argv.length > 2) {
   inputType = process.argv[2].replace(/\..{3}$/, '');
@@ -18,18 +19,18 @@ const input = fs.readFileSync(`${__dirname}/${inputType}.txt`, 'utf8')
   .split(/\r?\n/)
   .map(line => line.split(''));
 
-function countBeamLocations(input, start) {
+function getBeamLocations(input, start) {
   const beamLocations = [];
   const unprocessedLocations = [];
   unprocessedLocations.push(start);
   beamLocations.push(start);
-  
+
   while (unprocessedLocations.length > 0) {
     const location = unprocessedLocations.shift();
     const [x, y, moving] = location.split(',');
     const [xInt, yInt] = [parseInt(x), parseInt(y)];
     const lensSymbol = input[yInt][xInt];
-  
+
     const nextLocations = [];
     if (moving === 'right') {
       if ((lensSymbol === '.' || lensSymbol === '-') && xInt < input[yInt].length - 1) {
@@ -92,7 +93,7 @@ function countBeamLocations(input, start) {
         nextLocations.push(`${xInt + 1},${yInt},right`);
       }
     }
-  
+
     nextLocations.forEach(nextLocation => {
       if (!beamLocations.includes(nextLocation)) {
         beamLocations.push(nextLocation);
@@ -100,8 +101,11 @@ function countBeamLocations(input, start) {
       }
     });
   }
-  
-  // get a list of unique beam locations, without the direction
+
+  return beamLocations;
+}
+
+function getUniqueBeamLocations(beamLocations) {
   const uniqueBeamLocations = [];
   beamLocations.forEach(beamLocation => {
     const [x, y] = beamLocation.split(',');
@@ -110,11 +114,30 @@ function countBeamLocations(input, start) {
       uniqueBeamLocations.push(location);
     }
   });
-  
+  return uniqueBeamLocations;
+}
+
+function countBeamLocations(input, start) {
+  const beamLocations = getBeamLocations(input, start);
+  const uniqueBeamLocations = getUniqueBeamLocations(beamLocations);
   return uniqueBeamLocations.length;
 }
 
+function maximumEdgePath(input) {
+  const edgePaths = [];
+  for (let y = 0; y < input.length; y++) {
+    edgePaths.push(countBeamLocations(input, `0,${y},right`));
+    edgePaths.push(countBeamLocations(input, `${input[y].length - 1},${y},left`));
+  }
+  for (let x = 0; x < input[0].length; x++) {
+    edgePaths.push(countBeamLocations(input, `${x},0,down`));
+    edgePaths.push(countBeamLocations(input, `${x},${input.length - 1},up`));
+  }
+  return Math.max(...edgePaths);
+}
+
 const part1 = countBeamLocations(input, '0,0,right');
+const part2 = maximumEdgePath(input);
 
 const answers = {
   part1: {
@@ -125,9 +148,9 @@ const answers = {
     }
   },
   part2: {
-    actual: null,
+    actual: part2,
     expected: {
-      sample: null,
+      sample: 51,
       input: null
     }
   }
