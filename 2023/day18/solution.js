@@ -1,6 +1,5 @@
+const { readFileSync } = require('fs');
 const { assert } = require('console');
-
-const fs = require('fs');
 
 // check for optional command line argument
 let defaultInputType = 'input';
@@ -14,7 +13,7 @@ if (/sample.*/.test(inputType) || process.argv.length > 3) {
   DEBUG = true;
 }
 
-const input = fs.readFileSync(`${__dirname}/${inputType}.txt`, 'utf8')
+const input = readFileSync(`${__dirname}/${inputType}.txt`, 'utf8')
   .split(/\r?\n/)
   .map(raw => {
     let [direction, distance, color] = raw.split(' ');
@@ -23,115 +22,46 @@ const input = fs.readFileSync(`${__dirname}/${inputType}.txt`, 'utf8')
     return { direction, distance, color };
   });
 
-function digEdge(input) {
+function findVertices(input) {
+  const deltas = [[1, 0], [-1, 0], [0, -1], [0, 1]];
+  const directions = ['R', 'L', 'U', 'D'];
+  const vertices = [];
   let position = [0, 0];
-  let minY = 0;
-  let maxY = 0;
-  let minX = 0;
-  let maxX = 0;
-  const edges = [];
-
-  edges.push(position.join(','));
+  vertices.push(position.join(','));
   input.forEach(({ direction, distance }) => {
-    let dx = 0;
-    let dy = 0;
-    switch (direction) {
-      case 'R':
-        dx = 1;
-        break;
-      case 'L':
-        dx = -1;
-        break;
-      case 'U':
-        dy = -1;
-        break;
-      case 'D':
-        dy = 1;
-        break;
-    }
-    for (let i = 0; i < distance; i++) {
-      position[0] += dx;
-      position[1] += dy;
-      minX = Math.min(minX, position[0]);
-      maxX = Math.max(maxX, position[0]);
-      minY = Math.min(minY, position[1]);
-      maxY = Math.max(maxY, position[1]);
-      edges.push(position.join(','));
-    }
+    let [dx, dy] = deltas[directions.indexOf(direction)];
+    position[0] += dx * distance;
+    position[1] += dy * distance;
+    vertices.push(position.join(','));
   });
 
-  return {
-    edges,
-    minX,
-    maxX,
-    minY,
-    maxY
-  };
+  return vertices;
 }
 
-function fill(edges, minX, maxX, minY, maxY) {
-  const map = [];
-  for (let i = minY; i <= maxY; i++) {
-    let row = [];
-    for (let j = minX; j <= maxX; j++) {
-      if (edges.includes([j, i].join(','))) {
-        row.push('#');
-      } else {
-        row.push('?');
-      }
-    }
-    map.push(row);
+function shoelaceArea(vertices) {
+  let area = 2;
+  for (let i = 0; i < vertices.length - 1; i++) {
+    let [x1, y1] = vertices[i].split(',').map(Number);
+    let [x2, y2] = vertices[i + 1].split(',').map(Number);
+    let newArea = (x1 * y2) - (x2 * y1) + Math.abs((x2 - x1) + (y2 - y1));
+    area += newArea;
   }
-
-  let hasChanged = true;
-  while (hasChanged) {
-    hasChanged = false;
-    for (let i = 0; i < map.length; i++) {
-      let row = map[i];
-      for (let j = 0; j < row.length; j++) {
-        if (row[j] === '?') {
-          let left = j > 0 ? map[i][j - 1] : '.';
-          let right = j < map[i].length - 1 ? map[i][j + 1] : '.';
-          let up = i > 0 ? map[i - 1][j] : '.';
-          let down = i < map.length - 1 ? map[i + 1][j] : '.';
-          if (left === '.' || right === '.' || up === '.' || down === '.') {
-            map[i][j] = '.';
-            hasChanged = true;
-          }
-        }
-      }
-    }
-  }
-
-  return map.map(row => row.map(elem => elem === '?' ? '#' : elem));
+  return area = Math.abs(area / 2);
 }
 
-const { edges, minX, maxX, minY, maxY } = digEdge(input);
+const vertices = findVertices(input);
+const part1 = shoelaceArea(vertices);
 
-if (DEBUG) {
-  console.log('Edges:')
-  for (let i = minY; i <= maxY; i++) {
-    let row = '';
-    for (let j = minX; j <= maxX; j++) {
-      if (edges.includes([j, i].join(','))) {
-        row += '#';
-      } else {
-        row += '.';
-      }
-    }
-    console.log(row);
-  }
-  console.log('\n');
-}
+const part2Input = input.map(({ direction, distance, color }) => {
+  // strip last character off of color
+  let newDistance = parseInt(color.slice(0, -1), 16);
+  let newDirection = ['R', 'D', 'L', 'U'][color.at(-1)];
 
-const map = fill(edges, minX, maxX, minY, maxY);
-if (DEBUG) {
-  console.log('Filled in:')
-  console.log(map.map(row => row.join('')).join('\n'));
-  console.log('\n');
-}
+  return { direction: newDirection, distance: newDistance };
+});
 
-const part1 = map.reduce((sum, row) => sum + row.filter(elem => elem === '#').length, 0);
+const part2Vertices = findVertices(part2Input);
+const part2 = shoelaceArea(part2Vertices);
 
 const answers = {
   part1: {
@@ -142,10 +72,10 @@ const answers = {
     }
   },
   part2: {
-    actual: null,
+    actual: part2,
     expected: {
-      sample: null,
-      input: null
+      sample: 952408144115,
+      input: 96116995735219
     }
   }
 };
