@@ -1,10 +1,8 @@
+const { readFileSync } = require('fs');
 const { assert } = require('console');
-const { get } = require('http');
-
-fs = require('fs');
 
 // check for optional command line argument
-let defaultInputType = 'sample';
+let defaultInputType = 'input';
 let inputType = defaultInputType;
 if (process.argv.length > 2) {
   inputType = process.argv[2].replace(/\..{3}$/, '');
@@ -15,129 +13,102 @@ if (/sample.*/.test(inputType) || process.argv.length > 3) {
   DEBUG = true;
 }
 
-const input = fs.readFileSync(`${__dirname}/${inputType}.txt`, 'utf8')
+const input = readFileSync(`${__dirname}/${inputType}.txt`, 'utf8')
   .split(/\r?\n/)
   .map(line => line.split(''));
 
-function getBeamLocations(input, start) {
-  const beamLocations = [];
-  const unprocessedLocations = [];
-  unprocessedLocations.push(start);
-  beamLocations.push(start);
+const DIRECTIONS = {
+  up: [-1, 0],
+  down: [1, 0],
+  left: [0, -1],
+  right: [0, 1],
+};
 
-  while (unprocessedLocations.length > 0) {
-    const location = unprocessedLocations.shift();
-    const [x, y, moving] = location.split(',');
-    const [xInt, yInt] = [parseInt(x), parseInt(y)];
-    const lensSymbol = input[yInt][xInt];
+const NEXT_DIRECTIONS = {
+  '.': {
+    '-1,0': [DIRECTIONS.up],
+    '1,0': [DIRECTIONS.down],
+    '0,-1': [DIRECTIONS.left],
+    '0,1': [DIRECTIONS.right],
+  },
+  '#': {
+    '-1,0': [],
+    '1,0': [],
+    '0,-1': [],
+    '0,1': [],
+  },
+  '\\': {
+    '-1,0': [DIRECTIONS.left],
+    '1,0': [DIRECTIONS.right],
+    '0,-1': [DIRECTIONS.up],
+    '0,1': [DIRECTIONS.down],
+  },
+  '/': {
+    '-1,0': [DIRECTIONS.right],
+    '1,0': [DIRECTIONS.left],
+    '0,-1': [DIRECTIONS.down],
+    '0,1': [DIRECTIONS.up],
+  },
+  '|': {
+    '-1,0': [DIRECTIONS.up],
+    '1,0': [DIRECTIONS.down],
+    '0,-1': [DIRECTIONS.up, DIRECTIONS.down],
+    '0,1': [DIRECTIONS.up, DIRECTIONS.down],
+  },
+  '-': {
+    '-1,0': [DIRECTIONS.left, DIRECTIONS.right],
+    '1,0': [DIRECTIONS.left, DIRECTIONS.right],
+    '0,-1': [DIRECTIONS.left],
+    '0,1': [DIRECTIONS.right],
+  },
+};
 
-    const nextLocations = [];
-    if (moving === 'right') {
-      if ((lensSymbol === '.' || lensSymbol === '-') && xInt < input[yInt].length - 1) {
-        nextLocations.push(`${xInt + 1},${yInt},right`);
-      } else if (lensSymbol === '|') {
-        if (yInt > 0) {
-          nextLocations.push(`${xInt},${yInt - 1},up`);
-        }
-        if (yInt < input.length - 1) {
-          nextLocations.push(`${xInt},${yInt + 1},down`);
-        }
-      } else if (lensSymbol === '\\' && yInt < input.length - 1) {
-        nextLocations.push(`${xInt},${yInt + 1},down`);
-      } else if (lensSymbol === '/' && yInt > 0) {
-        nextLocations.push(`${xInt},${yInt - 1},up`);
+const singlePath = [];
+const allPaths = [];
+
+// just coming from 0, 0 to the right
+singlePath.push([[0, 0, DIRECTIONS.right]]);
+
+// all the paths from the edges coming in
+for (let i = 0; i < input.length; i++) {
+  allPaths.push([[i, 0, DIRECTIONS.right]]);
+  allPaths.push([[i, input[0].length - 1, DIRECTIONS.left]]);
+}
+for (let i = 0; i < input[0].length; i++) {
+  allPaths.push([[0, i, DIRECTIONS.down]]);
+  allPaths.push([[input.length - 1, i, DIRECTIONS.up]]);
+}
+
+function getBeamLengths(paths) {
+  const lengths = [];
+
+  for (const path of paths) {
+    const known = input.map((row) => row.map(() => []));
+    while (path.length) {
+      let [i, j, direction] = path.shift();
+      // out of bounds, or already known
+      if (!input[i] || !input[i][j] || known[i][j].includes(direction)) {
+        continue;
       }
-    } else if (moving === 'down') {
-      if ((lensSymbol === '.' || lensSymbol === '|') && yInt < input.length - 1) {
-        nextLocations.push(`${xInt},${yInt + 1},down`);
-      } else if (lensSymbol === '-') {
-        if (xInt > 0) {
-          nextLocations.push(`${xInt - 1},${yInt},left`);
-        }
-        if (xInt < input[yInt].length - 1) {
-          nextLocations.push(`${xInt + 1},${yInt},right`);
-        }
-      } else if (lensSymbol === '\\' && xInt < input[yInt].length - 1) {
-        nextLocations.push(`${xInt + 1},${yInt},right`);
-      } else if (lensSymbol === '/' && xInt > 0) {
-        nextLocations.push(`${xInt - 1},${yInt},left`);
-      }
-    } else if (moving === 'left') {
-      if ((lensSymbol === '.' || lensSymbol === '-') && xInt > 0) {
-        nextLocations.push(`${xInt - 1},${yInt},left`);
-      } else if (lensSymbol === '|') {
-        if (yInt > 0) {
-          nextLocations.push(`${xInt},${yInt - 1},up`);
-        }
-        if (yInt < input.length - 1) {
-          nextLocations.push(`${xInt},${yInt + 1},down`);
-        }
-      } else if (lensSymbol === '\\' && yInt > 0) {
-        nextLocations.push(`${xInt},${yInt - 1},up`);
-      } else if (lensSymbol === '/' && yInt < input.length - 1) {
-        nextLocations.push(`${xInt},${yInt + 1},down`);
-      }
-    } else if (moving === 'up') {
-      if ((lensSymbol === '.' || lensSymbol === '|') && yInt > 0) {
-        nextLocations.push(`${xInt},${yInt - 1},up`);
-      } else if (lensSymbol === '-') {
-        if (xInt > 0) {
-          nextLocations.push(`${xInt - 1},${yInt},left`);
-        }
-        if (xInt < input[yInt].length - 1) {
-          nextLocations.push(`${xInt + 1},${yInt},right`);
-        }
-      } else if (lensSymbol === '\\' && xInt > 0) {
-        nextLocations.push(`${xInt - 1},${yInt},left`);
-      } else if (lensSymbol === '/' && xInt < input[yInt].length - 1) {
-        nextLocations.push(`${xInt + 1},${yInt},right`);
+
+      known[i][j].push(direction);
+      for (const nextDir of NEXT_DIRECTIONS[input[i][j]][direction]) {
+        const [di, dj] = nextDir;
+        path.push([i + di, j + dj, nextDir]);
       }
     }
 
-    nextLocations.forEach(nextLocation => {
-      if (!beamLocations.includes(nextLocation)) {
-        beamLocations.push(nextLocation);
-        unprocessedLocations.push(nextLocation);
-      }
-    });
+    let beamEntryLocations = known.map((row) => row.map((entries) => entries.length > 0 ? 1 : 0));
+    let rowCounts = beamEntryLocations.map((row) => row.reduce((acc, n) => acc + n, 0));
+    let beamLength = rowCounts.reduce((acc, rowCount) => rowCount + acc, 0);
+    lengths.push(beamLength);
   }
 
-  return beamLocations;
+  return lengths;
 }
 
-function getUniqueBeamLocations(beamLocations) {
-  const uniqueBeamLocations = [];
-  beamLocations.forEach(beamLocation => {
-    const [x, y] = beamLocation.split(',');
-    const location = `${x},${y}`;
-    if (!uniqueBeamLocations.includes(location)) {
-      uniqueBeamLocations.push(location);
-    }
-  });
-  return uniqueBeamLocations;
-}
-
-function countBeamLocations(input, start) {
-  const beamLocations = getBeamLocations(input, start);
-  const uniqueBeamLocations = getUniqueBeamLocations(beamLocations);
-  return uniqueBeamLocations.length;
-}
-
-function maximumEdgePath(input) {
-  const edgePaths = [];
-  for (let y = 0; y < input.length; y++) {
-    edgePaths.push(countBeamLocations(input, `0,${y},right`));
-    edgePaths.push(countBeamLocations(input, `${input[y].length - 1},${y},left`));
-  }
-  for (let x = 0; x < input[0].length; x++) {
-    edgePaths.push(countBeamLocations(input, `${x},0,down`));
-    edgePaths.push(countBeamLocations(input, `${x},${input.length - 1},up`));
-  }
-  return Math.max(...edgePaths);
-}
-
-const part1 = countBeamLocations(input, '0,0,right');
-const part2 = maximumEdgePath(input);
+const part1 = getBeamLengths(singlePath)[0];
+const part2 = getBeamLengths(allPaths).reduce((acc, n) => Math.max(acc, n), 0);
 
 const answers = {
   part1: {
@@ -151,7 +122,7 @@ const answers = {
     actual: part2,
     expected: {
       sample: 51,
-      input: null
+      input: 7759
     }
   }
 };
