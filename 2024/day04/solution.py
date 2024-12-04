@@ -9,36 +9,33 @@ lines = inputs.splitlines()
 rows = len(lines)
 cols = len(lines[0])
 
-def in_bounds(x, y):
-    return 0 <= x < rows and 0 <= y < cols
-
 def search_word_from(word, x, y, dx, dy):
-    found = ""
     for i in range(len(word)):
         nx, ny = x + i * dx, y + i * dy
-        if in_bounds(nx, ny):
-            found += lines[nx][ny]
-        if not in_bounds(nx, ny) or lines[nx][ny] != word[i]:
+        
+        if 0 > nx or nx >= rows or \
+            0 > ny or ny >= cols or \
+                lines[nx][ny] != word[i]:
             return False
     return True
 
+def search_word_from_bidirectional(word, x, y, dx, dy):
+    return search_word_from(word, x, y, dx, dy) or \
+        search_word_from(word[::-1], x, y, dx, dy)
+
 def part_one():
     directions = [
-        (0, 1),  # horizontal right
-        (0, -1),  # horizontal left
-        (1, 0),  # vertical down
-        (-1, 0),  # vertical up
-        (-1, -1),  # diagonal up-left
-        (1, 1),  # diagonal down-right
-        (-1, 1),  # diagonal up-right
-        (1, -1)  # diagonal down-left
+        (0, 1),  # - horizontal
+        (1, 0),  # | vertical
+        (1, 1),  # \ diagonal down-right
+        (-1, 1)  # / diagonal up-right
     ]
 
     count = 0
     for r in range(rows):
         for c in range(cols):
             for dx, dy in directions:
-                if search_word_from("XMAS", r, c, dx, dy):
+                if search_word_from_bidirectional("XMAS", r, c, dx, dy):
                     count += 1
     return count
 
@@ -46,10 +43,8 @@ def part_two():
     count = 0
     for r in range(rows):
         for c in range(cols):
-            if (
-                (search_word_from("MAS", r - 1, c - 1, 1, 1) or search_word_from("MAS", r + 1, c + 1, -1, -1)) and
-                (search_word_from("MAS", r + 1, c - 1, -1, 1) or search_word_from("MAS", r - 1, c + 1, 1, -1))
-            ):
+            if search_word_from_bidirectional("MAS", r - 1, c - 1, 1, 1) and \
+               search_word_from_bidirectional("MAS", r + 1, c - 1, -1, 1):
                 count += 1
     return count
 
