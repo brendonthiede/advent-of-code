@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-from itertools import product
 
 with open(os.path.join(os.path.dirname(__file__), "input.txt"), "r") as file:
     inputs = file.read()
@@ -31,9 +30,7 @@ def solver(data, operator_options):
                 elif operator == '||':
                     new_result = int(f'{current_result}{values[index + 1]}')
                 # all operators increase the value, so we can stop traversing this branch if the result is already greater than the desired total
-                if new_result > total:
-                    continue
-                if iterative_try(values, operators, new_result, index + 1):
+                if new_result <= total and iterative_try(values, operators, new_result, index + 1):
                     return True
             return False
         return iterative_try(values, operator_options, values[0], 0)
