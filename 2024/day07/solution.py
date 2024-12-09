@@ -3,17 +3,8 @@
 import os
 
 with open(os.path.join(os.path.dirname(__file__), "input.txt"), "r") as file:
-    inputs = file.read()
-
-lines = inputs.splitlines()
-data = []
-
-for line in lines:
-    parts = line.split(":")
-    total = int(parts[0])
-    values = list(map(int, parts[1].strip().split()))
-    data.append((total, values))
-
+    data = [(int(line.split(":")[0]), tuple(map(int, line.split(":")[1].strip().split())))
+            for line in file]
 
 def solver(data, operator_options):
     grand_total = 0
@@ -40,5 +31,5 @@ def solver(data, operator_options):
             grand_total += total
     return grand_total
 
-print("Answer for part 1:", solver(data, ['+', '*']))
-print("Answer for part 2:", solver(data, ['+', '*', '||']))
+print("Answer for part 1:", solver(data, tuple(['+', '*'])))
+print("Answer for part 2:", solver(data, tuple(['+', '*', '||'])))
