@@ -38,18 +38,17 @@ def compress(disk_blocks):
             used_index -= 1
 
 def move_files():
-    for file_id in range(len(file_positions) - 1, -1, -1):
+    for file_id in reversed(range(len(file_positions))):
         file_position, file_size = file_positions[file_id]
-        for free_space in free_space_positions:
-            free_space_position, free_space_size = free_space
+        for free_space_index, (free_space_position, free_space_size) in enumerate(free_space_positions):
             if free_space_position > file_position:
                 break
             if free_space_size >= file_size:
                 file_positions[file_id][0] = free_space_position
-                free_space[0] += file_size
-                free_space[1] -= file_size
-                if free_space[1] == 0:
-                    free_space_positions.pop(free_space_positions.index(free_space))
+                free_space_positions[free_space_index][0] += file_size
+                free_space_positions[free_space_index][1] -= file_size
+                if free_space_positions[free_space_index][1] == 0:
+                    del free_space_positions[free_space_index]
                 break
 
 def calculate_checksum(disk_blocks):
@@ -78,6 +77,3 @@ def part_two():
 
 print("Answer for part 1:", part_one())
 print("Answer for part 2:", part_two())
-
-print("Expected answer for part 1: 6337921897505")
-print("Expected answer for part 2: 6362722604045")
