@@ -54,6 +54,57 @@ function isAcceptedByWorkflows(workflowDetails, x, m, a, s) {
   return workflowRules[0] === 'A';
 }
 
+function findAcceptedRangeCombinations(workflowDetails) {
+  function processWorkflow(workflowName, ranges) {
+    if (workflowName === 'R') return 0;
+    if (workflowName === 'A') {
+      return Object.values(ranges).reduce((product, range) => 
+        product * (range[1] - range[0] + 1), 1);
+    }
+
+    let total = 0;
+    let currentRanges = { ...ranges };
+    
+    for (const rule of workflowDetails[workflowName]) {
+      if (!rule.includes(':')) {
+        total += processWorkflow(rule, currentRanges);
+        continue;
+      }
+
+      const [condition, nextWorkflow] = rule.split(':');
+      const category = condition[0];
+      const operator = condition[1];
+      const value = parseInt(condition.slice(2));
+      
+      const [min, max] = currentRanges[category];
+      let matchedRanges = { ...currentRanges };
+      
+      if (operator === '<') {
+        matchedRanges[category] = [min, Math.min(value - 1, max)];
+        currentRanges[category] = [Math.max(value, min), max];
+      } else {
+        matchedRanges[category] = [Math.max(value + 1, min), max];
+        currentRanges[category] = [min, Math.min(value, max)];
+      }
+      
+      if (matchedRanges[category][0] <= matchedRanges[category][1]) {
+        total += processWorkflow(nextWorkflow, matchedRanges);
+      }
+    }
+    
+    return total;
+  }
+
+  const initialRanges = {
+    x: [1, 4000],
+    m: [1, 4000],
+    a: [1, 4000],
+    s: [1, 4000]
+  };
+
+  return processWorkflow('in', initialRanges);
+}
+
 const workflowDetails = initWorkflowDetails(workflows);
 const ratingNumbers = ratings.map(rating => {
   const categories = rating.split(/[}{,}]/).slice(1, -1);
@@ -65,6 +116,7 @@ const ratingNumbers = ratings.map(rating => {
 });
 
 const part1 = ratingNumbers.reduce((sum, rating) => sum + rating, 0);
+const part2 = findAcceptedRangeCombinations(workflowDetails);
 
 const answers = {
   part1: {
@@ -75,10 +127,10 @@ const answers = {
     }
   },
   part2: {
-    actual: null,
+    actual: part2,
     expected: {
-      sample: null,
-      input: null
+      sample: 167409079868000,
+      input: 132557544578569
     }
   }
 };
