@@ -17,5 +17,12 @@
   "homepage": "https://github.com/brendonthiede/advent-of-code#readme",
   "devDependencies": {
     "big.js": "^6.2.1"
+  },
+  "dependencies": {
+    "cytoscape": "^3.28.1",
+    "graphology": "^0.25.4",
+    "graphology-components": "^1.5.4",
+    "heap-js": "^2.3.0",
+    "z3-solver": "^4.12.4"
   }
 }
