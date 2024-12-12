@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 
 import os
-from collections import deque
 
 def get_region(grid, start, visited):
     rows, cols = len(grid), len(grid[0])
     region = set()
-    queue = deque([start])
+    queue = [start]
     plant_type = grid[start[0]][start[1]]
     
     while queue:
-        y, x = queue.popleft()
+        y, x = queue.pop(0)
         if (y, x) in visited:
             continue
             
         visited.add((y, x))
         region.add((y, x))
         
-        # Check all 4 directions for the same plant type, add it to the end of the queue and repeat
+        # Check all 4 directions for the same plant type, add it to the queue and repeat
         for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
             new_y, new_x = y + dy, x + dx
             if (0 <= new_y < rows and 0 <= new_x < cols and 
