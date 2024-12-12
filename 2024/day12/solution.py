@@ -64,15 +64,17 @@ def get_sides(grid, region):
             collapse_neighbors(neighbor, dy, dx)
 
     while border:
-        y, x, border_dy, border_dx = border.pop()
-        # For a cell where the border is to the right or left, collapse any adjacent cells up or down with the same border
+        start = border.pop()
+        _, _, border_dy, _ = start
         if border_dy == 0:
-            collapse_neighbors((y, x, border_dy, border_dx), 1, 0)
-            collapse_neighbors((y, x, border_dy, border_dx), -1, 0)
+            # East or West side
+            collapse_neighbors(start, 1, 0)
+            collapse_neighbors(start, -1, 0)
         else:
-            collapse_neighbors((y, x, border_dy, border_dx), 0, 1)
-            collapse_neighbors((y, x, border_dy, border_dx), 0, -1)
-        sides.add((y, x, border_dy, border_dx))
+            # North or South side
+            collapse_neighbors(start, 0, 1)
+            collapse_neighbors(start, 0, -1)
+        sides.add(start)
     return len(sides)
 
 def solve(grid, part):
