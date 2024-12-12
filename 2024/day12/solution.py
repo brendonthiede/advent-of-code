@@ -49,48 +49,30 @@ def get_sides(grid, region):
     for y, x in region:
         # For each side of this cell, is it on the edge of the grid or the region?
         # This time, track the border cells directionally
-        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-            new_y, new_x = y + dy, x + dx
+        for border_dy, border_dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+            new_y, new_x = y + border_dy, x + border_dx
             if (new_y < 0 or new_y >= rows or 
                 new_x < 0 or new_x >= cols or 
                 (new_y, new_x) not in region):
-                border.add((y, x, dy, dx))
+                border.add((y, x, border_dy, border_dx))
 
-    # Now, collapse neighboring border cells into a single side
+    def collapse_neighbors(start, dy, dx):
+        y, x, border_dy, border_dx = start
+        neighbor = (y + dy, x + dx, border_dy, border_dx)
+        if neighbor in border:
+            border.remove(neighbor)
+            collapse_neighbors(neighbor, dy, dx)
+
     while border:
-        y, x, dy, dx = border.pop()
+        y, x, border_dy, border_dx = border.pop()
         # For a cell where the border is to the right or left, collapse any adjacent cells up or down with the same border
-        if dy == 0:
-            new_y = y
-            while(True):
-                if (new_y + 1, x, dy, dx) in border:
-                    border.remove((new_y + 1, x, dy, dx))
-                    new_y += 1
-                else:
-                    break
-            new_y = y
-            while(True):
-                if (new_y - 1, x, dy, dx) in border:
-                    border.remove((new_y - 1, x, dy, dx))
-                    new_y -= 1
-                else:
-                    break
+        if border_dy == 0:
+            collapse_neighbors((y, x, border_dy, border_dx), 1, 0)
+            collapse_neighbors((y, x, border_dy, border_dx), -1, 0)
         else:
-            new_x = x
-            while(True):
-                if (y, new_x + 1, dy, dx) in border:
-                    border.remove((y, new_x + 1, dy, dx))
-                    new_x += 1
-                else:
-                    break
-            new_x = x
-            while(True):
-                if (y, new_x - 1, dy, dx) in border:
-                    border.remove((y, new_x - 1, dy, dx))
-                    new_x -= 1
-                else:
-                    break
-        sides.add((y, x, dy, dx))
+            collapse_neighbors((y, x, border_dy, border_dx), 0, 1)
+            collapse_neighbors((y, x, border_dy, border_dx), 0, -1)
+        sides.add((y, x, border_dy, border_dx))
     return len(sides)
 
 def solve(grid, part):
