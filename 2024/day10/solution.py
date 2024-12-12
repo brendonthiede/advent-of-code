@@ -14,7 +14,7 @@ def find_paths(topo_map, start):
         if not is_valid(x, y) or topo_map[y][x] != current_elevation + 1:
             return
 
-        new_elevation = topo_map[y][x]        
+        new_elevation = topo_map[y][x]
         if new_elevation == 9:
             summits.append((x, y))
             nonlocal path_count
@@ -24,7 +24,7 @@ def find_paths(topo_map, start):
             new_x, new_y = x + dx, y + dy
             dfs(new_x, new_y, new_elevation)
     
-    start_x, start_y = start    
+    start_x, start_y = start
     for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
         new_x, new_y = start_x + dx, start_y + dy
         if is_valid(new_x, new_y) and topo_map[new_y][new_x] == 1:
