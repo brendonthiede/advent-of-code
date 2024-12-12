@@ -25,35 +25,22 @@ def get_region(grid, start, visited):
                 queue.append((new_y, new_x))
     return region
 
-def get_perimeter(grid, region):
-    perimeter = 0
-    rows, cols = len(grid), len(grid[0])
-    
-    for y, x in region:
-        # For each side of this cell, is it on the edge of the grid or the region?
-        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-            new_y, new_x = y + dy, x + dx
-            if (new_y < 0 or new_y >= rows or 
-                new_x < 0 or new_x >= cols or 
-                (new_y, new_x) not in region):
-                perimeter += 1
-                
-    return perimeter
-
 def get_sides(grid, region):
+    perimeter = 0
     border = set()
     sides = set()
     rows, cols = len(grid), len(grid[0])
 
     for y, x in region:
         # For each side of this cell, is it on the edge of the grid or the region?
-        # This time, track the border cells directionally
-        for border_dy, border_dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-            new_y, new_x = y + border_dy, x + border_dx
+        # add up perimeter and track the border cells directionally
+        for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+            new_y, new_x = y + dy, x + dx
             if (new_y < 0 or new_y >= rows or 
                 new_x < 0 or new_x >= cols or 
                 (new_y, new_x) not in region):
-                border.add((y, x, border_dy, border_dx))
+                perimeter += 1
+                border.add((y, x, dy, dx))
 
     def collapse_neighbors(start, dy, dx):
         y, x, border_dy, border_dx = start
@@ -74,10 +61,11 @@ def get_sides(grid, region):
             collapse_neighbors(start, 0, 1)
             collapse_neighbors(start, 0, -1)
         sides.add(start)
-    return len(sides)
+    return perimeter, len(sides)
 
-def solve(grid, part):
-    total_price = 0
+def solve(grid):
+    part_one_total = 0
+    part_two_total = 0
     visited = set()
     rows, cols = len(grid), len(grid[0])
     
@@ -86,17 +74,15 @@ def solve(grid, part):
             if (row, col) not in visited:
                 region = get_region(grid, (row, col), visited)
                 area = len(region)
-                if part == 1:
-                    multiplier = get_perimeter(grid, region)
-                else:
-                    multiplier = get_sides(grid, region)
-                price = area * multiplier
-                total_price += price
+                perimeter, sides = get_sides(grid, region)
+                part_one_total += area * perimeter
+                part_two_total += area * sides
                 
-    return total_price
+    return part_one_total, part_two_total
 
 with open(os.path.join(os.path.dirname(__file__), "input.txt"), "r") as file:
     grid = [line.strip() for line in file]
 
-print("Answer for part 1:", solve(grid, 1))
-print("Answer for part 2:", solve(grid, 2))
+part_one, part_two = solve(grid)
+print("Answer for part 1:", part_one)
+print("Answer for part 2:", part_two)
