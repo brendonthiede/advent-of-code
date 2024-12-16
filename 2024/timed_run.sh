@@ -40,6 +40,9 @@ SOLUTION_DAYS="$(find "${DIR}" -maxdepth 1 -name "day*" -type d | tr ' ' '\n' | 
 
 for DAY_PATH in ${SOLUTION_DAYS}; do
     START_TIME=$(date +%s%3N)
+    if [[ ! -s "${DAY_PATH}/README.txt" ]]; then
+        continue
+    fi
     SOLUTION="$(python3 "${DAY_PATH}/solution.py")"
     END_TIME=$(date +%s%3N)
     ELAPSED_TIME=$((END_TIME - START_TIME))
@@ -49,6 +52,6 @@ for DAY_PATH in ${SOLUTION_DAYS}; do
         echo "${SOLUTION}"
         echo "Elapsed time: ${ELAPSED_TIME} ms"
     else
-        echo "${SHORT_DAY_PATH}: ${ELAPSED_TIME} ms"
+        printf "%s %6s ms\n" "${SHORT_DAY_PATH}:" "${ELAPSED_TIME}"
     fi
 done
