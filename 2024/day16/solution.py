@@ -32,9 +32,11 @@ def solve(grid):
         cost, y, x, direction, path = heappop(queue)
         state = (y, x, direction)
         
+        # Skip if cost is already higher than the minimum end cost
         if cost > min_end_cost:
             continue
-            
+        
+        # Check if we reached the end
         if (y, x) == end:
             if cost < min_end_cost:
                 min_end_cost = cost
@@ -43,6 +45,7 @@ def solve(grid):
                 optimal_paths.append(path)
             continue
         
+        # Skip if we already visited this state with a lower cost
         if state in costs and costs[state] < cost:
             continue
         costs[state] = cost
