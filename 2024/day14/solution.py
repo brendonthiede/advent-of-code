@@ -13,7 +13,7 @@ class Robot:
     def move(self, width, height):
         self.x = (self.x + self.dx) % width
         self.y = (self.y + self.dy) % height
-        
+
 def parse_input(line):
     pos, vel = line.split()
     px, py = map(int, pos[2:].split(','))
@@ -61,20 +61,31 @@ def part_one(robots, width, height, seconds):
 
 def part_two(robots, width, height):
     robots = [Robot(r.x, r.y, r.dx, r.dy) for r in robots]
-
     tick = 0
+    
     while True:
         tick += 1
         for robot in robots:
             robot.move(width, height)
-        grid = [['.' for _ in range(width)] for _ in range(height)]
+            
+        # Group robots by row
+        rows = {}
         for robot in robots:
-            grid[robot.y][robot.x] = '#'
-        for row in grid:
-            full_row = ''.join(row)
-            if "########" in full_row:
-                print_grid(robots, width, height)
-                return tick
+            if robot.y not in rows:
+                rows[robot.y] = []
+            rows[robot.y].append(robot.x)
+            
+        # Check each row that has enough robots
+        search_string = "########"
+        for y in rows:
+            if len(rows[y]) >= len(search_string):
+                # Check for consecutive positions
+                row = ["."] * width
+                for x in rows[y]:
+                    row[x] = "#"
+                if search_string in "".join(row):
+                    print_grid(robots, width, height)
+                    return tick
 
 with open(os.path.join(os.path.dirname(__file__), "input.txt"), "r") as file:
     robots = [parse_input(line.strip()) for line in file]
