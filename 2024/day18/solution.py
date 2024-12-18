@@ -52,12 +52,27 @@ def part_one(coordinates):
     grid = create_memory_grid(coordinates)
     return find_shortest_path(grid)
 
-def part_two():
-    # Part two not implemented yet
-    pass
+def part_two(coordinates):
+    size = 71
+    for i, (x, y) in enumerate(coordinates):
+        if x >= size or y >= size:
+            continue
+            
+        # Create grid with bytes up to and including current byte
+        grid = create_memory_grid(coordinates, size, i + 1)
+        
+        # Check if path exists
+        if find_shortest_path(grid) is None:
+            return f"{x},{y}"
+    
+    return None
 
 if __name__ == "__main__":
     input_file = os.path.join(os.path.dirname(__file__), "input.txt")
     coordinates = parse_input(input_file)
+    
     part_one_answer = part_one(coordinates)
     print("Answer for part 1:", part_one_answer)
+    
+    part_two_answer = part_two(coordinates)
+    print("Answer for part 2:", part_two_answer)
