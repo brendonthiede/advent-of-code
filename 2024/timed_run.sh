@@ -47,11 +47,13 @@ for DAY_PATH in ${SOLUTION_DAYS}; do
     END_TIME=$(date +%s%3N)
     ELAPSED_TIME=$((END_TIME - START_TIME))
     SHORT_DAY_PATH="${DAY_PATH#${PARENT_DIR}/}"
+    LINES_OF_CODE=$(wc -l <"${DAY_PATH}/solution.py")
     if [[ "${VERBOSE}" == "true" ]]; then
         echo -e "\n${DAY_PATH}"
         echo "${SOLUTION}"
         echo "Elapsed time: ${ELAPSED_TIME} ms"
+        echo "Lines of code: ${LINES_OF_CODE}"
     else
-        printf "%s %6s ms\n" "${SHORT_DAY_PATH}:" "${ELAPSED_TIME}"
+        printf "%s %6s ms %4s LoC\n" "${SHORT_DAY_PATH}:" "${ELAPSED_TIME}" "${LINES_OF_CODE}"
     fi
 done
