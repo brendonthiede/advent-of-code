@@ -3,6 +3,7 @@
 from collections import deque
 import os
 from typing import List, Tuple, Dict
+from functools import lru_cache
 
 DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
@@ -20,71 +21,81 @@ def parse_input(filename: str) -> Tuple[List[str], Tuple[int, int], Tuple[int, i
     
     return grid, start, end
 
-def is_valid(pos: Tuple[int, int], grid: List[str]) -> bool:
-    x, y = pos
-    if y < 0 or y >= len(grid) or x < 0 or x >= len(grid[0]):
-        return False
-    return grid[y][x] not in '#'
-
-def get_neighbors(pos: Tuple[int, int]) -> List[Tuple[int, int]]:
-    x, y = pos
-    return [(x + dx, y + dy) for dx, dy in DIRECTIONS]
-
-def find_shortest_path(grid: List[str], start: Tuple[int, int], end: Tuple[int, int]) -> Dict[Tuple[int, int], int]:
+@lru_cache(None)
+def find_shortest_path(grid: Tuple[str], start: Tuple[int, int]) -> Dict[Tuple[int, int], int]:
     distances = {start: 0}
-    queue = deque([start])
+    queue = deque([(start, 0)])
+    width, height = len(grid[0]), len(grid)
     
     while queue:
-        current = queue.popleft()
-        for next_pos in get_neighbors(current):
-            if not is_valid(next_pos, grid) or next_pos in distances:
-                continue
-            distances[next_pos] = distances[current] + 1
-            queue.append(next_pos)
-    
+        pos, dist = queue.popleft()
+        x, y = pos
+        next_dist = dist + 1
+        
+        # Unrolled neighbor checks with early exit
+        if x > 0 and grid[y][x-1] != '#':
+            new_pos = (x-1, y)
+            if new_pos not in distances:
+                distances[new_pos] = next_dist
+                queue.append((new_pos, next_dist))
+        if x < width-1 and grid[y][x+1] != '#':
+            new_pos = (x+1, y)
+            if new_pos not in distances:
+                distances[new_pos] = next_dist
+                queue.append((new_pos, next_dist))
+        if y > 0 and grid[y-1][x] != '#':
+            new_pos = (x, y-1)
+            if new_pos not in distances:
+                distances[new_pos] = next_dist
+                queue.append((new_pos, next_dist))
+        if y < height-1 and grid[y+1][x] != '#':
+            new_pos = (x, y+1)
+            if new_pos not in distances:
+                distances[new_pos] = next_dist
+                queue.append((new_pos, next_dist))
     return distances
 
-def find_cheating_shortcuts(grid: List[str], start: Tuple[int, int], end: Tuple[int, int], normal_dist: Dict[Tuple[int, int], int], max_cheat_length: int) -> int:
-    base_time = normal_dist[end]
-    reverse_dist = find_shortest_path(grid, end, start)
-    cheats_found = 0
+def offsets_at_dist(n: int) -> List[Tuple[int, int, int]]:
+    return [
+        (r, c, md)
+        for r in range(-n, n + 1)
+        for c in range(-n, n + 1)
+        if (md := abs(r) + abs(c)) <= n and (r, c) != (0, 0)
+    ]
+
+def find_cheating_shortcuts(grid: List[str], start: Tuple[int, int], end: Tuple[int, int], max_cheat_length: int) -> int:
     height, width = len(grid), len(grid[0])
+    forward_dist = find_shortest_path(tuple(grid), start)
+    base_time = forward_dist[end]
+    backward_dist = find_shortest_path(tuple(grid), end)
+    valid_cheats = set()
     
-    for y1 in range(height):
-        for x1 in range(width):
-            cheat_start = (x1, y1)
-            if cheat_start not in normal_dist:
+    offsets = offsets_at_dist(max_cheat_length)
+    valid_positions = {(x, y) for y in range(height) for x in range(width) if grid[y][x] != '#'}
+    
+    for cheat_start, start_time in forward_dist.items():
+        if start_time >= base_time - 100:
+            continue
+        
+        x1, y1 = cheat_start
+        for dr, dc, md in offsets:
+            x2, y2 = x1 + dr, y1 + dc
+            cheat_end = (x2, y2)
+            
+            if cheat_end not in valid_positions or cheat_end not in backward_dist:
                 continue
             
-            queue = deque([(cheat_start, 0)])
-            visited = {cheat_start}
-            
-            while queue:
-                pos, steps = queue.popleft()
-                if steps == max_cheat_length:
-                    continue
-                    
-                for next_pos in get_neighbors(pos):
-                    if not (0 <= next_pos[1] < height and 0 <= next_pos[0] < width):
-                        continue
-                    if next_pos in visited:
-                        continue
-                    visited.add(next_pos)
-                    queue.append((next_pos, steps + 1))
-                    
-                    if next_pos in reverse_dist:
-                        time_with_cheat = normal_dist[cheat_start] + steps + 1 + reverse_dist[next_pos]
-                        if base_time - time_with_cheat >= 100:
-                            cheats_found += 1
+            total_time = start_time + md + backward_dist[cheat_end]
+            if base_time - total_time >= 100:
+                valid_cheats.add((cheat_start, cheat_end))
     
-    return cheats_found
+    return len(valid_cheats)
 
 def main():
     input_file = os.path.join(os.path.dirname(__file__), "input.txt")
     grid, start, end = parse_input(input_file)
-    normal_distances = find_shortest_path(grid, start, end)
-    print("Answer for part 1:", find_cheating_shortcuts(grid, start, end, normal_distances, 2))
-    print("Answer for part 2:", find_cheating_shortcuts(grid, start, end, normal_distances, 20))
+    print("Answer for part 1:", find_cheating_shortcuts(grid, start, end, 2))
+    print("Answer for part 2:", find_cheating_shortcuts(grid, start, end, 20))
 
 if __name__ == "__main__":
     main()
