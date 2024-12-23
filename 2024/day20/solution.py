@@ -2,8 +2,9 @@
 
 from collections import deque
 import os
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Set
 from functools import lru_cache
+import multiprocessing as mp
 
 DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
@@ -63,17 +64,12 @@ def offsets_at_dist(n: int) -> List[Tuple[int, int, int]]:
         if (md := abs(r) + abs(c)) <= n and (r, c) != (0, 0)
     ]
 
-def find_cheating_shortcuts(grid: List[str], start: Tuple[int, int], end: Tuple[int, int], max_cheat_length: int) -> int:
-    height, width = len(grid), len(grid[0])
-    forward_dist = find_shortest_path(tuple(grid), start)
-    base_time = forward_dist[end]
-    backward_dist = find_shortest_path(tuple(grid), end)
+def process_chunk(args: Tuple[List[Tuple[Tuple[int, int], int]], List[Tuple[int, int, int]], 
+                 Dict[Tuple[int, int], int], Set[Tuple[int, int]], int]) -> Set[Tuple[Tuple[int, int], Tuple[int, int]]]:
+    cheat_positions, offsets, backward_dist, valid_positions, base_time = args
     valid_cheats = set()
     
-    offsets = offsets_at_dist(max_cheat_length)
-    valid_positions = {(x, y) for y in range(height) for x in range(width) if grid[y][x] != '#'}
-    
-    for cheat_start, start_time in forward_dist.items():
+    for cheat_start, start_time in cheat_positions:
         if start_time >= base_time - 100:
             continue
         
@@ -89,7 +85,36 @@ def find_cheating_shortcuts(grid: List[str], start: Tuple[int, int], end: Tuple[
             if base_time - total_time >= 100:
                 valid_cheats.add((cheat_start, cheat_end))
     
-    return len(valid_cheats)
+    return valid_cheats
+
+def find_cheating_shortcuts(grid: List[str], start: Tuple[int, int], end: Tuple[int, int], max_cheat_length: int) -> int:
+    height, width = len(grid), len(grid[0])
+    forward_dist = find_shortest_path(tuple(grid), start)
+    base_time = forward_dist[end]
+    backward_dist = find_shortest_path(tuple(grid), end)
+    
+    offsets = offsets_at_dist(max_cheat_length)
+    valid_positions = {(x, y) for y in range(height) for x in range(width) if grid[y][x] != '#'}
+    
+    # Convert forward_dist items to list for chunking
+    cheat_positions = list(forward_dist.items())
+    
+    # Split work into chunks based on CPU count
+    cpu_count = mp.cpu_count()
+    chunk_size = max(1, len(cheat_positions) // cpu_count)
+    chunks = [cheat_positions[i:i + chunk_size] for i in range(0, len(cheat_positions), chunk_size)]
+    
+    # Prepare arguments for each process
+    process_args = [(chunk, offsets, backward_dist, valid_positions, base_time) for chunk in chunks]
+    
+    # Process chunks in parallel
+    with mp.Pool() as pool:
+        results = pool.map(process_chunk, process_args)
+    
+    # Combine results from all processes
+    all_cheats = set().union(*results)
+    
+    return len(all_cheats)
 
 def main():
     input_file = os.path.join(os.path.dirname(__file__), "input.txt")
