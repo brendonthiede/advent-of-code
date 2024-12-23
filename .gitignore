@@ -1,3 +1,7 @@
 .DS_Store
 node_modules
 notes*
+README.txt
+input.txt
+sample*.txt
+tmp.*
