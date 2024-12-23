@@ -3,53 +3,74 @@
 import os
 from collections import defaultdict
 from typing import List, Dict, Tuple
+from functools import lru_cache
+from multiprocessing import Pool
 
+@lru_cache(maxsize=None)
 def mix_and_prune(secret: int, value: int) -> int:
     # XOR the value with the secret
     return (secret ^ value) % 16777216
 
 def generate_sequence(initial: int, length: int = 2001) -> List[int]:
+    if not 0 <= initial < 16777216:
+        return [initial]  # Invalid initial value, return minimal sequence
+        
     sequence = [initial]
     secret = initial
+    seen = {initial: 0}  # Track seen values and their positions
     
-    for _ in range(length - 1):
+    for i in range(length - 1):
         # multiply by 64 and mix/prune
         secret = mix_and_prune(secret, secret * 64)
         # divide by 32 and mix/prune
         secret = mix_and_prune(secret, secret // 32)
         # multiply by 2048 and mix/prune
         secret = mix_and_prune(secret, secret * 2048)
+        
+        # If we've seen this value before, we're in a cycle
+        if secret in seen:
+            cycle_length = i + 1 - seen[secret]
+            # Fill the rest of the sequence with cycled values
+            while len(sequence) < length:
+                cycle_pos = (len(sequence) - seen[secret]) % cycle_length + seen[secret]
+                sequence.append(sequence[cycle_pos])
+            return sequence
+            
+        seen[secret] = i + 1
         sequence.append(secret)
     
     return sequence
 
 def find_patterns(prices: List[int]) -> Dict[Tuple[int, int, int, int], int]:
-    # Get price changes
     changes = [prices[i+1] - prices[i] for i in range(len(prices)-1)]
-    
-    # Find all patterns and their resulting prices
     patterns = {}
+    
     for i in range(len(changes)-3):
         pattern = (changes[i], changes[i+1], changes[i+2], changes[i+3])
+        # Only store the first occurrence of each pattern
         if pattern not in patterns:
             patterns[pattern] = prices[i+4]
     
     return patterns
 
+def process_secret(initial: int) -> Tuple[int, Dict[Tuple[int, int, int, int], int]]:
+    sequence = generate_sequence(initial)
+    prices = [x % 10 for x in sequence]
+    patterns = find_patterns(prices)
+    return sequence[-1], patterns
+
 def solve(secrets: List[int]) -> Tuple[int, int]:
-    part1 = 0
     pattern_scores = defaultdict(int)
     
-    for initial in secrets:
-        # Generate sequence and solve part 1
-        sequence = generate_sequence(initial)
-        part1 += sequence[-1]
-        
-        # Get ones digits for part 2
-        prices = [x % 10 for x in sequence]
-        
-        # Find patterns and accumulate scores
-        patterns = find_patterns(prices)
+    # Use multiprocessing to parallelize the sequence generation
+    with Pool() as pool:
+        results = pool.map(process_secret, secrets)
+    
+    # Combine results
+    part1 = sum(last_num for last_num, _ in results)
+    
+    # For part 2, only count patterns when they first appear
+    for _, patterns in results:
         for pattern, price in patterns.items():
             pattern_scores[pattern] += price
     
