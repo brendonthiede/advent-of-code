@@ -12,13 +12,13 @@ def count_lines(file_path):
     with open(file_path, 'r') as f:
         return sum(1 for _ in f)
 
-def run_solution(day_path):
+def run_solution(day_path, interpreter):
     solution_path = os.path.join(day_path, "solution.py")
     if not os.path.exists(solution_path):
         return None, None
     
     start_time = time.time() * 1000
-    result = subprocess.run(['python3', solution_path], capture_output=True, text=True)
+    result = subprocess.run(f'{interpreter} {solution_path}', shell=True, capture_output=True, text=True)
     end_time = time.time() * 1000
     
     return result.stdout.strip(), end_time - start_time
@@ -43,6 +43,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
     parser.add_argument('-g', '--graph', action='store_true', help='Show terminal graphs')
     parser.add_argument('-d', '--days', nargs='+', default=['all'], help='Specific days to run (e.g., day01 day02) or "all"')
+    parser.add_argument('-i', '--interpreter', help='Specify Python interpreter to use', default='python3')
     args = parser.parse_args()
 
     args.days = ['day{:02d}'.format(int(day)) if day.isdigit() else day for day in args.days]
@@ -59,12 +60,14 @@ def main():
     times = []
     lines_of_code = []
 
+    interpreter = args.interpreter
+    print(f"Using Python interpreter: {interpreter}")
     for day_path in day_paths:
         input_path = os.path.join(day_path, "input.txt")
         if not os.path.exists(input_path) or os.path.getsize(input_path) == 0:
             continue
 
-        solution, elapsed_time = run_solution(day_path)
+        solution, elapsed_time = run_solution(day_path, interpreter)
         if solution is None:
             continue
 
