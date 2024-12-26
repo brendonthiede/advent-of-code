@@ -45,14 +45,11 @@ def main():
     parser.add_argument('-d', '--days', nargs='+', default=['all'], help='Specific days to run (e.g., day01 day02) or "all"')
     args = parser.parse_args()
 
+    args.days = ['day{:02d}'.format(int(day)) if day.isdigit() else day for day in args.days]
+    
     current_dir = Path(__file__).parent
     parent_dir = current_dir.parent.parent
 
-    args.days = ['day{:02d}'.format(int(day)) if day.isdigit() else day for day in args.days]
-
-    print("args.days:", args.days)
-
-    
     # Find all day directories
     day_paths = sorted(glob.glob(os.path.join(current_dir, "day*")))
     if args.days != ['all']:
@@ -63,7 +60,8 @@ def main():
     lines_of_code = []
 
     for day_path in day_paths:
-        if not os.path.exists(os.path.join(day_path, "README.txt")):
+        input_path = os.path.join(day_path, "input.txt")
+        if not os.path.exists(input_path) or os.path.getsize(input_path) == 0:
             continue
 
         solution, elapsed_time = run_solution(day_path)
