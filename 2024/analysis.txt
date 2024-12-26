@@ -1,0 +1,80 @@
+Using Python interpreter: python3
+advent-of-code/2024/day01:     33 ms   21 LoC
+advent-of-code/2024/day02:     24 ms   29 LoC
+advent-of-code/2024/day03:     15 ms   27 LoC
+advent-of-code/2024/day04:     78 ms   52 LoC
+advent-of-code/2024/day05:     81 ms   46 LoC
+advent-of-code/2024/day06:   1168 ms   74 LoC
+advent-of-code/2024/day07:   1588 ms   35 LoC
+advent-of-code/2024/day08:     29 ms   52 LoC
+advent-of-code/2024/day09:    196 ms   79 LoC
+advent-of-code/2024/day10:     25 ms   51 LoC
+advent-of-code/2024/day11:     40 ms   71 LoC
+advent-of-code/2024/day12:     52 ms   88 LoC
+advent-of-code/2024/day13:    127 ms   78 LoC
+advent-of-code/2024/day14:   1255 ms   96 LoC
+advent-of-code/2024/day15:     37 ms   89 LoC
+advent-of-code/2024/day16:   1299 ms   79 LoC
+advent-of-code/2024/day17:     26 ms   99 LoC
+advent-of-code/2024/day18:     39 ms  102 LoC
+advent-of-code/2024/day19:     41 ms   76 LoC
+advent-of-code/2024/day20:    794 ms  126 LoC
+advent-of-code/2024/day21:     31 ms  110 LoC
+advent-of-code/2024/day22:   2267 ms   88 LoC
+advent-of-code/2024/day23:     24 ms   98 LoC
+advent-of-code/2024/day24:     13 ms   88 LoC
+advent-of-code/2024/day25:     44 ms   38 LoC
+
+Execution Times (ms):
+day01  [  33]  ▋
+day02  [  24]  ▍
+day03  [  15]  ▎
+day04  [  78]  █▍
+day05  [  81]  █▍
+day06  [1168]  ████████████████████▋
+day07  [1588]  ████████████████████████████
+day08  [  29]  ▌
+day09  [ 196]  ███▌
+day10  [  25]  ▌
+day11  [  40]  ▊
+day12  [  52]  ▉
+day13  [ 127]  ██▎
+day14  [1255]  ██████████████████████▏
+day15  [  37]  ▋
+day16  [1299]  ██████████████████████▉
+day17  [  26]  ▌
+day18  [  39]  ▊
+day19  [  41]  ▊
+day20  [ 794]  ██████████████
+day21  [  31]  ▌
+day22  [2267]  ████████████████████████████████████████
+day23  [  24]  ▍
+day24  [  13]  ▎
+day25  [  44]  ▊
+
+Lines of Code:
+day01  [ 21]  ██████▋
+day02  [ 29]  █████████▎
+day03  [ 27]  ████████▋
+day04  [ 52]  ████████████████▌
+day05  [ 46]  ██████████████▋
+day06  [ 74]  ███████████████████████▌
+day07  [ 35]  ███████████▏
+day08  [ 52]  ████████████████▌
+day09  [ 79]  █████████████████████████▏
+day10  [ 51]  ████████████████▎
+day11  [ 71]  ██████████████████████▌
+day12  [ 88]  ███████████████████████████▉
+day13  [ 78]  ████████████████████████▊
+day14  [ 96]  ██████████████████████████████▌
+day15  [ 89]  ████████████████████████████▎
+day16  [ 79]  █████████████████████████▏
+day17  [ 99]  ███████████████████████████████▍
+day18  [102]  ████████████████████████████████▍
+day19  [ 76]  ████████████████████████▏
+day20  [126]  ████████████████████████████████████████
+day21  [110]  ██████████████████████████████████▉
+day22  [ 88]  ███████████████████████████▉
+day23  [ 98]  ███████████████████████████████▏
+day24  [ 88]  ███████████████████████████▉
+day25  [ 38]  ████████████▏
