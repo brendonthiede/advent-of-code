@@ -5,9 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "pwa-node",
+            "type": "debugpy",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Python: Current File",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Node: Current File",
             "skipFiles": [
                 "<node_internals>/**"
             ],
