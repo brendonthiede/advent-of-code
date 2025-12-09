@@ -32,7 +32,7 @@ def solution(file_name: str, part: int):
         timelines = defaultdict(int)
         timelines[grid[0].index('S')] = 1
         
-        for row_idx in range(1, len(grid)):
+        for row_idx in range(2, len(grid), 2):
             row = grid[row_idx]
             new_timelines = defaultdict(int)
             
