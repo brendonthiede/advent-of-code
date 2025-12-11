@@ -1,3 +1,5 @@
 numpy
 black
 shapely
+matplotlib
+scipy
