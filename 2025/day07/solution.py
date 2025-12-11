@@ -11,7 +11,7 @@ def solution(file_name: str, part: int):
         active_beams = {grid[0].index('S')}
         split_count = 0
         
-        for row_idx in range(1, len(grid)):
+        for row_idx in range(2, len(grid), 2):
             row = grid[row_idx]
             new_beams = set()
             
